@@ -4,8 +4,5 @@ title: About Me
 permalink: /about/
 ---
 
-This website is powered by **[fastpages](https://github.com/fastai/fastpages)** [^1].
-
-
-
-[^1]:a blogging platform that natively supports Jupyter notebooks in addition to other formats.
+I am a data scientist working and based in Israel, with an undergraduate degree in statistics from the University of Pennsylvania, and a masters degree in computer science 
+Georgia Tech.

@@ -3,9 +3,6 @@ layout: page
 title: My CV
 permalink: /CV/
 ---
-
-![]({{site.baseurl}}/images/headshot.png "https://github.com/jackhmiller/My-DS-Blog")
-
 ## **Work Experience**
 ### Data Scientist at **Sparks AB** 
 ###### Hod Hasharon, October 2019 – Current

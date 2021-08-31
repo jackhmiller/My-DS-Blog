@@ -6,15 +6,14 @@ permalink: /CV/
 ## **Work Experience**
 
 ### Data Scientist
-Sparks AB
-###### Hod Hasharon, October 2019 – Current
+**Sparks AB** ###### Hod Hasharon, October 2019 – Current
 >- ML & Deep Learning for Algorithmic Trading
 >- End-to-end data science pipelines for financial market predictions, including research, feature creation/selection, model training/optimization, and deployment architecture
 >- Deep learning (RNN, CNN, transformers) & machine learning models (gradient boosting)
 >- Engineering using AWS Cloud suite, Jenkins, custom APIs to automate training and deployment
 
 ### Junior Data Scientist/ML Engineer
-#### **WeWork Technology**
+**WeWork Technology
 ###### Tel Aviv, November January 2019 – October 2019
 - Data Science & Engineering
 - Automated end-to-end data pipeline engineering using AWS, Snowflake & Apache Airflow

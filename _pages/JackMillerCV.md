@@ -12,7 +12,7 @@ permalink: /CV/
 >- Deep learning (RNN, CNN, transformers) & machine learning models (gradient boosting)
 >- Engineering using AWS Cloud suite, Jenkins, custom APIs to automate training and deployment
 
-### Junior Data Scientist/ML Engineer at **WeWork Technology
+### Junior Data Scientist/ML Engineer at **WeWork Technology**
 ###### Tel Aviv, November January 2019 – October 2019
 >- Data Science & Engineering
 >- Automated end-to-end data pipeline engineering using AWS, Snowflake & Apache Airflow
@@ -43,9 +43,9 @@ permalink: /CV/
 ## **Education**
 
 ### **University of Pennsylvania**, BA Statistics | 2010-2014
->- Military Applications of Statistical Modeling
->- GPA: 3.9/4.0 *Magna Cum Laude*
+- Military Applications of Statistical Modeling
+- GPA: 3.9/4.0 *Magna Cum Laude*
 
 ### **Georgia Tech**, Msc Computer Science | 2020-Present
->- Computational Perception and Robotics
->- GPA: 3.8/4.0
+- Computational Perception and Robotics
+- GPA: 3.8/4.0

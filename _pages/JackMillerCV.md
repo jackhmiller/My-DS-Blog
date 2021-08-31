@@ -5,7 +5,7 @@ permalink: /CV/
 ---
 ## **Work Experience**
 
-### Data Scientist
+> ### Data Scientist
 #### **Sparks AB**
 ###### Hod Hasharon, October 2019 – Current
 - ML & Deep Learning for Algorithmic Trading

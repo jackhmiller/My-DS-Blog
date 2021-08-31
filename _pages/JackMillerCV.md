@@ -5,8 +5,8 @@ permalink: /CV/
 ---
 ## **Work Experience**
 
-> ### Data Scientist
-#### **Sparks AB**
+### Data Scientist
+>> #### **Sparks AB**
 ###### Hod Hasharon, October 2019 – Current
 - ML & Deep Learning for Algorithmic Trading
 - End-to-end data science pipelines for financial market predictions, including research, feature creation/selection, model training/optimization, and deployment architecture

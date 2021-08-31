@@ -8,3 +8,5 @@ I am a data scientist working and based in Israel, with an undergraduate degree 
 Georgia Tech.
 
 ###### 050-709-2944 | Jack.harris.miller@gmail.com
+
+![]({{site.baseurl}}/images/headshot.png "https://github.com/jackhmiller/My-DS-Blog")

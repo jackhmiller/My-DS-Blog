@@ -3,8 +3,10 @@ layout: page
 title: My CV
 permalink: /CV/
 ---
-## **Work Experience**
 
+![]({{site.baseurl}}/images/headshot.png "https://github.com/jackhmiller/My-DS-Blog")
+
+## **Work Experience**
 ### Data Scientist at **Sparks AB** 
 ###### Hod Hasharon, October 2019 – Current
 >- ML & Deep Learning for Algorithmic Trading
@@ -41,7 +43,6 @@ permalink: /CV/
 >- Sentiment analysis research for modeling of exogenous events & systematic shocks
 
 ## **Education**
-
 ### **University of Pennsylvania**, BA Statistics | 2010-2014
 - Military Applications of Statistical Modeling
 - GPA: 3.9/4.0 *Magna Cum Laude*

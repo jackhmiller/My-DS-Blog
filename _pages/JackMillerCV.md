@@ -3,11 +3,6 @@ layout: page
 title: CV
 permalink: /CV/
 ---
-
-**My CV**
-======
-###### 050-709-2944 | Jack.harris.miller@gmail.com
-
 ## **Work Experience**
 
 ### Data Scientist

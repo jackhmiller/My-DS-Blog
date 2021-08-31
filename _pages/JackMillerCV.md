@@ -6,12 +6,12 @@ permalink: /CV/
 ## **Work Experience**
 
 ### Data Scientist
-**Sparks AB**
+Sparks AB
 ###### Hod Hasharon, October 2019 – Current
->>- ML & Deep Learning for Algorithmic Trading
-- End-to-end data science pipelines for financial market predictions, including research, feature creation/selection, model training/optimization, and deployment architecture
-- Deep learning (RNN, CNN, transformers) & machine learning models (gradient boosting)
-- Engineering using AWS Cloud suite, Jenkins, custom APIs to automate training and deployment
+>- ML & Deep Learning for Algorithmic Trading
+>- End-to-end data science pipelines for financial market predictions, including research, feature creation/selection, model training/optimization, and deployment architecture
+>- Deep learning (RNN, CNN, transformers) & machine learning models (gradient boosting)
+>- Engineering using AWS Cloud suite, Jenkins, custom APIs to automate training and deployment
 
 ### Junior Data Scientist/ML Engineer
 #### **WeWork Technology**
@@ -22,7 +22,7 @@ permalink: /CV/
 - Unstructured sentiment modeling and automation for global billing and payment services
 - Anomaly detection model for payment API monitoring & security
 
-### Senior Data Analyst, 
+### Senior Data Analyst 
 #### **EY (Ernst & Young)**
 ###### Tel Aviv, November 2016 – December 2018
 Innovation and R&D
@@ -31,14 +31,14 @@ Innovation and R&D
 
 *(Aliyah and army service October 2015 – November 2016)*
 
-### Quant Analyst, 
+### Quant Analyst 
 #### **McKinsey & Co.**
 ###### Washington D.C., January 2013-October 2015
 - Quantitative Analytics and Modeling
 - Modeling for warfare simulations and predictions regarding autonomous robotics
 - Part of DoD-led study to determine the effectiveness of commercial & defense machine learning technologies to solve defense needs
 
-### Research Associate,
+### Research Associate
 #### **Defense Advanced Research Projects Agency (DARPA)**
 ###### Philadelphia, PA, September 2011- May 2014
 - Competitive contingency estimation program

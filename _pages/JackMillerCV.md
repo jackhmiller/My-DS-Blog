@@ -5,13 +5,10 @@ permalink: /CV/
 ---
 
 **My CV**
-===========
-
-###### 050-709-2944
-###### Jack.harris.miller@gmail.com
+======
+###### 050-709-2944 | Jack.harris.miller@gmail.com
 
 ## **Work Experience**
----------------------
 
 ### Data Scientist
 #### **Sparks AB**
@@ -54,7 +51,6 @@ Innovation and R&D
 - Sentiment analysis research for modeling of exogenous events & systematic shocks
 
 ## **Education**
-----------------
 
 ### **University of Pennsylvania**, BA Statistics | 2010-2014
 - Military Applications of Statistical Modeling

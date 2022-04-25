@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="twitter:card" content="summary_large_image" /><!-- Begin Jekyll SEO tag v2.6.1 -->
+<title>Zero Inflated Poisson (ZIP) Regression | Not Another Data Science Blog</title>
+<meta name="generator" content="Jekyll v4.1.1" />
+<meta property="og:title" content="Zero Inflated Poisson (ZIP) Regression" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="How to effectively model count data with sparse predictors" />
+<meta property="og:description" content="How to effectively model count data with sparse predictors" />
+<link rel="canonical" href="https://jackhmiller.github.io/My-DS-Blog/2017/12/21/ZIP.html" />
+<meta property="og:url" content="https://jackhmiller.github.io/My-DS-Blog/2017/12/21/ZIP.html" />
+<meta property="og:site_name" content="Not Another Data Science Blog" />
+<meta property="og:image" content="https://jackhmiller.github.io/My-DS-Blog/images/zip.png" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2017-12-21T00:00:00-06:00" />
+<script type="application/ld+json">
+{"url":"https://jackhmiller.github.io/My-DS-Blog/2017/12/21/ZIP.html","@type":"BlogPosting","headline":"Zero Inflated Poisson (ZIP) Regression","dateModified":"2017-12-21T00:00:00-06:00","datePublished":"2017-12-21T00:00:00-06:00","image":"https://jackhmiller.github.io/My-DS-Blog/images/zip.png","mainEntityOfPage":{"@type":"WebPage","@id":"https://jackhmiller.github.io/My-DS-Blog/2017/12/21/ZIP.html"},"description":"How to effectively model count data with sparse predictors","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/My-DS-Blog/assets/css/style.css"><link type="application/atom+xml" rel="alternate" href="https://jackhmiller.github.io/My-DS-Blog/feed.xml" title="Not Another Data Science Blog" /><link rel="shortcut icon" type="image/x-icon" href="/My-DS-Blog/images/nn_JFc_icon.ico">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Primer/15.2.0/primer.css" integrity="sha512-xTz2ys4coGAOz8vuV1NcQBkgVmKhsSEtjbqyMJbBHRplFuvKIUo6xhLHpAyPt9mfR6twHJgn9OgVLuqOvjeBhg==" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.14.0/css/all.min.css" integrity="sha512-1PKOgIY59xJ8Co8+NE6FZ+LOAZKjy+KY8iq0G4B3CyeY6wYHN3yt9PW0XpSriVlkMXe40PTKnXrLnZ9+fkDaog==" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.12.0/katex.min.css" integrity="sha512-h7nl+xz8wgDlNM4NqKEM4F1NkIRS17M9+uJwIGwuo8vGqIl4BhuCKdxjWEINm+xyrUjNCnK5dCrhM0sj+wTIXw==" crossorigin="anonymous" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.12.0/katex.min.js" integrity="sha512-/CMIhXiDA3m2c9kzRyd97MTb3MC6OVnx4TElQ7fkkoRghwDf6gi41gaT1PwF270W6+J60uTmwgeRpNpJdRV6sg==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.12.0/contrib/auto-render.min.js" integrity="sha512-Do7uJAaHZm5OLrIv/yN4w0iG1dbu01kzdMNnFfu/mAqgUk6Nniv2JYHcwH+cNwjqgLcqcuBBk+JRvprLVI8azg==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha512-0doc9hKxR3PYwso42RD1p5ySZpzzuDiOwMrdCEh2WdJZCjcmFKc/wEnL+z8fBQrnHoiNWbo+3fiGkOYXBdQp4A==" crossorigin="anonymous"></script>
+    <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement( document.body, {
+        delimiters: [
+            {left: "$$", right: "$$", display: true},
+            {left: "[%", right: "%]", display: true},
+            {left: "$", right: "$", display: false}
+        ]}
+        );
+    });
+    </script>
+
+
+<script>
+function wrap_img(fn) {
+    if (document.attachEvent ? document.readyState === "complete" : document.readyState !== "loading") {
+        var elements = document.querySelectorAll(".post img");
+        Array.prototype.forEach.call(elements, function(el, i) {
+            if (el.getAttribute("title") && (el.className != "emoji")) {
+                const caption = document.createElement('figcaption');
+                var node = document.createTextNode(el.getAttribute("title"));
+                caption.appendChild(node);
+                const wrapper = document.createElement('figure');
+                wrapper.className = 'image';
+                el.parentNode.insertBefore(wrapper, el);
+                el.parentNode.removeChild(el);
+                wrapper.appendChild(el);
+                wrapper.appendChild(caption);
+            }
+        });
+    } else { document.addEventListener('DOMContentLoaded', fn); }
+}
+window.onload = wrap_img;
+</script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function(){
+    // add link icon to anchor tags
+    var elem = document.querySelectorAll(".anchor-link")
+    elem.forEach(e => (e.innerHTML = '<i class="fas fa-link fa-xs"></i>'));
+    });
+</script>
+</head>
+<body><header class="site-header">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/My-DS-Blog/">Not Another Data Science Blog</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/My-DS-Blog/CV/">My CV</a><a class="page-link" href="/My-DS-Blog/about/">About Me</a><a class="page-link" href="/My-DS-Blog/search/">Search</a><a class="page-link" href="/My-DS-Blog/categories/">Tags</a></div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">Zero Inflated Poisson (ZIP) Regression</h1><p class="page-description">How to effectively model count data with sparse predictors</p><p class="post-meta post-meta-title"><time class="dt-published" datetime="2017-12-21T00:00:00-06:00" itemprop="datePublished">
+        Dec 21, 2017
+      </time>
+       • <span class="read-time" title="Estimated read time">
+    
+    
+      5 min read
+    
+</span></p>
+
+    
+
+    
+      
+        <div class="pb-5 d-flex flex-wrap flex-justify-end">
+          <div class="px-2">
+
+    <a href="https://github.com/jackhmiller/My-DS-Blog/tree/master/_notebooks/2017-12-21-ZIP.ipynb" role="button" target="_blank">
+<img class="notebook-badge-image" src="/My-DS-Blog/assets/badges/github.svg" alt="View On GitHub">
+    </a>
+</div>
+
+          <div class="px-2">
+    <a href="https://mybinder.org/v2/gh/jackhmiller/My-DS-Blog/master?filepath=_notebooks%2F2017-12-21-ZIP.ipynb" target="_blank">
+        <img class="notebook-badge-image" src="/My-DS-Blog/assets/badges/binder.svg" alt="Open In Binder"/>
+    </a>
+</div>
+
+          <div class="px-2">
+    <a href="https://colab.research.google.com/github/jackhmiller/My-DS-Blog/blob/master/_notebooks/2017-12-21-ZIP.ipynb" target="_blank">
+        <img class="notebook-badge-image" src="/My-DS-Blog/assets/badges/colab.svg" alt="Open In Colab"/>
+    </a>
+</div>
+        </div>
+      </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <!--
+#################################################
+### THIS FILE WAS AUTOGENERATED! DO NOT EDIT! ###
+#################################################
+# file to edit: _notebooks/2017-12-21-ZIP.ipynb
+-->
+
+<div class="container" id="notebook-container">
+        
+<div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h3 id="Motivation">Motivation<a class="anchor-link" href="#Motivation"> </a></h3>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>The Poisson distribution can be derived as a limiting form of the binomial distribution if you consider the distribution of the number of successes in a very large number of Bernoulli trials with a small probability of success in each trial. Thus, the Poisson distribution provides an approximation to the binomial for the analysis of rare events.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>The classic text on probability theory by Feller (1957) includes a number of examples of observations fitting the Poisson distribution, including data on the number of flying-bomb hits in the south of London during World War II. The city was divided into 576 small areas of one-quarter square kilometers each, and the number of areas hit exactly k times was counted. There were a total of 537 hits, so the average number of hits per area was 0.9323.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>In the flying-bomb example, we can think of each day as one of a large number of trials where each specific area has only a small probability of being hit. Assuming independence across days would lead to a binomial distribution which is well approximated by the Poisson. Alternatively, if we consider the Poisson distribution in terms of a stochastic process, the porbability of at least one occurence of the event in a given time interval is propotional to the length of the interval.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Unlike this traditional Poisson distribution, many real world phenomena produce counts that are almost always zero. For example, the number of sales per item in a store. Such data are hard to deal with using traditional models for counts data such as the Poisson, the Binomial or the Negative Binomial regression models. This is because such data sets contain more number of zero valued counts than what one would expect to observe using the traditional model’s probability distribution.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>To demonstrate, recall the PMF for a Poisson distribution $$ P(y=k) = \frac{e^{-\lambda}*\lambda^k}{k!}  $$
+Where $\lambda_i = e^{x_i\beta}$- here $\beta$ is the vector of regression coefficients</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>If we assume that our events obey a Poisson(5) process, you would expect to see zero counts no more than 0.67% of the time:</p>
+
+</div>
+</div>
+</div>
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">s</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">poisson</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">10000</span><span class="p">)</span>
+<span class="n">sns</span><span class="o">.</span><span class="n">histplot</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+
+
+<div class="output_text output_subarea output_execute_result">
+<pre>&lt;AxesSubplot:ylabel=&#39;Count&#39;&gt;</pre>
+</div>
+
+</div>
+
+<div class="output_area">
+
+
+
+<div class="output_png output_subarea ">
+<img src="data:image/png;base64,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
+" />
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+    
+
+<div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>As a result, if you use a standard Poisson or Binomial or NB regression model on such data sets, it can fit badly and will generate poor quality predictions, no matter how much you tweak its parameters</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p><br /></p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h3 id="The-ZIP-Model">The ZIP Model<a class="anchor-link" href="#The-ZIP-Model"> </a></h3>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Fortunately, the ZIP model provides us with a modification of the standard counts model such as Poisson or Negative Binomial to account for the presence of the extra zeroes. Another technique, called the Hurdle Model, has also been designed to deal with the excess zeroes, but here we will focus on ZIP.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>The intuition behind the ZIP model is that there is a second underlying process that is determining whether a count is zero or non-zero. Once a count is determined to be non-zero, the regular Poisson process takes over to determine its actual non-zero value based on the Poisson process’s PMF. The PMF of the ZIP model is as follows:
+$$
+P(y_i)\left\{\begin{matrix}
+y_i = 1,2,3... &amp; \phi_i + (1-\phi_i)*e^{-\lambda}\\ 
+y_i = 0 &amp; (1-\phi_i)\frac{e^{-\lambda}*\lambda^k}{k!}
+\end{matrix}\right.
+$$</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>The main difference between the ZIP model and the above mentioned Poisson process if the addition of the $\phi$ parameter, which is a measure of the proportion of excess zeroes corresponding to the ith row in the dataset. Described differently, it can be considered a weight or penalty that increased the tendancy of the model to add structural zeroes to its posterior modeling of the distribution. Thus, a $\phi$ value of zero results in the ZIP model reducing to a standard Poisson process and PMF.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>A crude way to calculate $\phi$ would be to set it as the number of zero valued samples divided by the total number of samples. A better way to estimate $\phi$ would be to estimate it as a function of our regressor variables/features. This is done by transforming the y variable (a continuous count) into a binary 0 or 1 variable. We then fit a logistic regression model on the binary y to produce fitted probabilities of an outcome whith or without an event. This vector of probabilities of a non-zero event is set as our $\phi$ vector. We can then use Maximum Likelihood Estimation (MLE) to train the ZIP model.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h3 id="Demo">Demo<a class="anchor-link" href="#Demo"> </a></h3>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Thankfully, there are many python packages that automate the procedure of estimating $\phi$ and using the estimated $\phi$ to train the ZIP model using the MLE technique on your data set. Here we will use statsmodels, but there are other python implementations such as pymc3. Along with the statsmodels implementation, we will use daily retail sales data as our features.</p>
+
+</div>
+</div>
+</div>
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="kn">import</span> <span class="nn">pickle</span>
+<span class="kn">import</span> <span class="nn">statsmodels.api</span> <span class="k">as</span> <span class="nn">sm</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">sklearn.model_selection</span> <span class="kn">import</span> <span class="n">train_test_split</span>
+<span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="kn">import</span> <span class="n">accuracy_score</span><span class="p">,</span> <span class="n">f1_score</span><span class="p">,</span> <span class="n">mean_absolute_error</span><span class="p">,</span> <span class="n">r2_score</span>
+<span class="kn">import</span> <span class="nn">xgboost</span> <span class="k">as</span> <span class="nn">xgb</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="n">warnings</span><span class="o">.</span><span class="n">filterwarnings</span><span class="p">(</span><span class="s1">&#39;ignore&#39;</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+    
+
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">weekly_sales</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">frames</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+    
+
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">w1_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">frames</span><span class="p">)</span>
+<span class="n">df</span> <span class="o">=</span> <span class="n">w1_df</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="mi">100000</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+    
+
+<div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Below we can see that most of our entries for y are zero, but we also have considerable sales (count) data.</p>
+
+</div>
+</div>
+</div>
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">sns</span><span class="o">.</span><span class="n">distplot</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">rug</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+
+
+<div class="output_text output_subarea output_execute_result">
+<pre>&lt;AxesSubplot:ylabel=&#39;Density&#39;&gt;</pre>
+</div>
+
+</div>
+
+<div class="output_area">
+
+
+
+<div class="output_png output_subarea ">
+<img src="data:image/png;base64,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
+" />
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+    
+
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">X</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">drop</span><span class="p">([</span><span class="s1">&#39;part&#39;</span><span class="p">,</span> <span class="s1">&#39;sales_quantity&#39;</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;sales_quantity&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+
+<span class="n">X_train</span><span class="p">,</span> <span class="n">X_test</span><span class="p">,</span> <span class="n">y_train</span><span class="p">,</span> <span class="n">y_test</span> <span class="o">=</span> <span class="n">train_test_split</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">test_size</span><span class="o">=</span><span class="mf">0.25</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="mi">42</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+    
+
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">zip_training_results</span> <span class="o">=</span> <span class="n">sm</span><span class="o">.</span><span class="n">ZeroInflatedPoisson</span><span class="p">(</span><span class="n">endog</span><span class="o">=</span><span class="n">y_train</span><span class="p">,</span>
+                                              <span class="n">exog</span><span class="o">=</span><span class="n">X_train</span><span class="p">,</span>
+                                              <span class="n">exog_infl</span><span class="o">=</span><span class="n">X_train</span><span class="p">,</span>
+                                              <span class="n">inflation</span><span class="o">=</span><span class="s1">&#39;logit&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">fit</span><span class="p">()</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>Warning: Desired error not necessarily achieved due to precision loss.
+         Current function value: 7.028915
+         Iterations: 0
+         Function evaluations: 15
+         Gradient evaluations: 3
+</pre>
+</div>
+</div>
+
+</div>
+</div>
+
+</div>
+    
+
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">zip_predictions</span> <span class="o">=</span> <span class="n">zip_training_results</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X_test</span>
+                                               <span class="p">,</span><span class="n">exog_infl</span><span class="o">=</span><span class="n">X_test</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+    
+
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Mean Absolute Error (MAE) for ZIP predictions: </span><span class="si">{0}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">mean_absolute_error</span><span class="p">(</span><span class="n">y_test</span><span class="p">,</span> <span class="n">zip_predictions</span><span class="p">)))</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>Mean Absolute Error (MAE) for ZIP predictions: 0.29544
+</pre>
+</div>
+</div>
+
+</div>
+</div>
+
+</div>
+    
+
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="n">xgb_reg</span> <span class="o">=</span> <span class="n">xgb</span><span class="o">.</span><span class="n">XGBRegressor</span><span class="p">()</span>
+<span class="n">xgb_reg</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X_train</span><span class="p">,</span> <span class="n">y_train</span><span class="p">)</span>
+<span class="n">xgb_predictions</span> <span class="o">=</span> <span class="n">xgb_reg</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X_test</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+</div>
+    
+
+    
+    
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Mean Absolute Error (MAE) for XGBoost predictions: </span><span class="si">{0}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">mean_absolute_error</span><span class="p">(</span><span class="n">y_test</span><span class="p">,</span> <span class="n">xgb_predictions</span><span class="p">)))</span>
+</pre></div>
+
+    </div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+<div class="output_area">
+
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>Mean Absolute Error (MAE) for XGBoost predictions: 0.35163331031799316
+</pre>
+</div>
+</div>
+
+</div>
+</div>
+
+</div>
+    
+
+<div class="cell border-box-sizing text_cell rendered"><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>Thus the ZIP model performs significantly better than a gradient boosting algorithm for our case.</p>
+
+</div>
+</div>
+</div>
+</div>
+
+
+
+  </div><!-- from https://github.com/utterance/utterances -->
+<script src="https://utteranc.es/client.js"
+        repo="jackhmiller/My-DS-Blog"
+        issue-term="title"
+        label="blogpost-comment"
+        theme="github-light"
+        crossorigin="anonymous"
+        async>
+</script><a class="u-url" href="/My-DS-Blog/2017/12/21/ZIP.html" hidden></a>
+</article>
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/My-DS-Blog/"></data>
+
+  <div class="wrapper">
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col">
+        <p class="feed-subscribe">
+          <a href="/My-DS-Blog/feed.xml">
+            <svg class="svg-icon orange">
+              <use xlink:href="/My-DS-Blog/assets/minima-social-icons.svg#rss"></use>
+            </svg><span>Subscribe</span>
+          </a>
+        </p>
+      </div>
+      <div class="footer-col">
+        <p>050-709-2944 | Jack.harris.miller@gmail.com</p>
+      </div>
+    </div>
+
+    <div class="social-links"><ul class="social-media-list"><li><a rel="me" href="https://github.com/jackhmiller" target="_blank" title="jackhmiller"><svg class="svg-icon grey"><use xlink:href="/My-DS-Blog/assets/minima-social-icons.svg#github"></use></svg></a></li></ul>
+</div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>

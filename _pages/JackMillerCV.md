@@ -4,30 +4,31 @@ title: My CV
 permalink: /CV/
 ---
 ## **Work Experience**
+### Senior Data Scientist at **CB4, A Gap Company** 
+###### Herzliya, October 2021 - Present
+>- Research, design, and implementation in production of deep learning models for predicting inventory inefficiencies and lost sales opportunities across all Gap retail and online stores
+>- Zero-inflated deep hurdle model for out-of-stock prediction, coupled with Catboost regressor for sales prediction
+>- Containerized and scalable model endpoint deployments via Kubernetes using Terraform-managed GCP Cloud infrastructure  
+
 ### Data Scientist at **Sparks AB** 
-###### Hod Hasharon, October 2019 – Current
->- ML & Deep Learning for Algorithmic Trading
->- End-to-end data science pipelines for financial market predictions, including research, feature creation/selection, model training/optimization, and deployment architecture
->- Deep learning (RNN, CNN, transformers) & machine learning models (gradient boosting)
->- Engineering using AWS Cloud suite, Jenkins, custom APIs to automate training and deployment
+###### Hod Hasharon, October 2019 – October 2021
+>- Built and deployed end-to-end ML pipelines for financial instrument trading, involving data orchestration, model training/optimization, and deployment architecture
+>- Models include Temporal CNN, LSTM, deep autoregressive models, and seasonal hybrid anomaly detection models
+>- ML Ops using AWS S3/Lambda/SageMaker, Jenkins, custom API to automate training and deployment
 
-### Junior Data Scientist/ML Engineer at **WeWork Technology**
-###### Tel Aviv, November January 2019 – October 2019
->- Data Science & Engineering
->- Automated end-to-end data pipeline engineering using AWS, Snowflake & Apache Airflow
->- Reproducible DS environment engineering using Docker and Jupyter
->- Unstructured sentiment modeling and automation for global billing and payment services
->- Anomaly detection model for payment API monitoring & security
+### Data Scientist at **WeWork**
+###### Tel Aviv, January 2019 – October 2019
+>- Internal technology team working to improve WeWork services, offerings, and customer experience
+>- LSTM & tree-based classification model to detect video streaming quality to improve WeWork internet offerings to residents 
+>- Generated artificial user streaming data using smartphone emulator and network protocol analyze, collected by elastic search
 
-### Senior Data Analyst at **EY (Ernst & Young)**
+### Junior Data Scientist at **EY (Ernst & Young)**
 ###### Tel Aviv, November 2016 – December 2018
->- Innovation and R&D
->- Machine & deep learning PoCs for Israeli and international consulting clients as solutions to predictive and analytics challenges
->- Sample of projects: financial anomaly detection for global bank, unsupervised learning model for drug discovery for pharma co., appraisal modeling for commercial real estate
+>- Participated in the development of ML tax & audit products and services for internal use with clients
+>- Classification model for tax-sensitive transactions including anomaly/fraud detection
+>- Autoregressive forecasting model for regulatory penalty scheduling 
 
-*(Aliyah and army service October 2015 – November 2016)*
-
-### Quant Analyst at **McKinsey & Co.**
+### Quantitative Analyst at **McKinsey & Co.**
 ###### Washington D.C., January 2013-October 2015
 >- Quantitative Analytics and Modeling
 >- Modeling for warfare simulations and predictions regarding autonomous robotics
@@ -41,9 +42,9 @@ permalink: /CV/
 
 ## **Education**
 ### **University of Pennsylvania**, BA Statistics | 2010-2014
-- Military Applications of Statistical Modeling
+- Thesis: Spatial Clustering of Innovations in Military Theaters 
 - GPA: 3.9/4.0 *Magna Cum Laude*
 
-### **Georgia Tech**, Msc Computer Science | 2020-Present
+### **Georgia Tech**, Msc Computer Science | 2015-2019
 - Computational Perception and Robotics
 - GPA: 3.8/4.0

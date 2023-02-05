@@ -40,7 +40,7 @@ baseurl: "/My-DS-Blog" # the subpath of your site, e.g. "/blog".
 minima:
   social_links:
 #    twitter: fastdotai
-    github: jackhmiller
+    - { platform: github, user_url: "https://github.com/jackhmiller" }
 
 # Set this to true to get LaTeX math equation support
 use_math: true

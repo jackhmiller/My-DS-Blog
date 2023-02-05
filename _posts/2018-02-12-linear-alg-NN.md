@@ -8,9 +8,6 @@ description: How a neural network's operations such as hidden layers and activat
 hide: false
 ---
 
-# A Linear Algebraic Perspective of Neural Networks
-
-
 ### Introduction
 With the increased popularity of neural networks, some of the mathematical intuition and foundations can be abstracted away thanks to frameworks like Tensorflow, which make neural networks readily available due  ease-of-implementation. However, in order to be able to use such tools effectively or to simply appreciate their effectiveness, it is important to remind ourselfs of their humble foundations.
 

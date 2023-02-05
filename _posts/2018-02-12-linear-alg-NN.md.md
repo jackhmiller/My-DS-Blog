@@ -1,4 +1,3 @@
-
 ---
 title: A Linear Algebraic Perspective of Neural Networks
 tags: ["Linear-Algebra", "Neural-Network"]
@@ -91,16 +90,16 @@ Like before, each output unit performs a linear combination of the incoming weig
 #### Neural networks as general nonlinear transformers
 
 Let’s take a simple yet classic classification problem, something which is not linearly separable, to demonstrate the superior capabilities of neural networks over linear models. We can synthetically generate a spiral dataset as shown below with 2 classes and a 1000 points.
-![[Pasted image 20230205083545.png]]
+![](https://deepandshallowml.files.wordpress.com/2022/01/image-1.png)
 
 A linear model is not going to be able to separate these classes, since linear models will have a straight line as a decision boundary. However, it is very simply to train a Neural Network on this data to classify them with high accuracy. Using just two hidden layers with 128 and 2 units, respectively, gives us an accuracy of 95%. As we can see below, the neural network created a non-linear decision boundary.
 
-![[Pasted image 20230205083742.png]]
+![](https://deepandshallowml.files.wordpress.com/2022/01/image-2.png)
 
 We know that neural networks are a bunch of linear transformations with non-linearities spread in between, with the final layer usually being a linear transformation. So, if we consider all the layers before the last layer, all they are doing is apply matrix multiplication and activation functions so that the data becomes linearly separable for the final layer. From the geometric interpretation of linear algebra, this is just a linear transformation of the vector space.
 
 Let us again visualize the points in original space as well as the output of the final hidden layer of the network network.
 
-![[Pasted image 20230205084032.png]]
+![](https://deepandshallowml.files.wordpress.com/2022/01/image-4.png?w=1024)
 
 We can see that the hidden layers have learnt is a transformation from the original input space to another space in which the points are linearly separable! This "learning" is essentially the warping and folding of space by the neural network so that the input points become linearly separable. This is made possible by the activation function (in this case ReLU), which introduces non-linearity. If there was no activation function, the total transformation would still be linear and would not be able to resolve the non-linearly distributed points to linearly separable ones.

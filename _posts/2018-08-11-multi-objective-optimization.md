@@ -7,9 +7,6 @@ layout: post
 description: A sophisticated yet simple solution to combining multiple loss functions for optimizing a single model
 hide: false
 ---
----
-# Multi-Objective Optimization
-<br>
 
 ### Introduction
 Machine learning is inherently a multi-objective task. In most real-world problems, a learner is required to find a model with strong performance across multiple objectives $L_1, ..., L_p$. Committing to a single objective $L_k$ fails to capture the full complexity of the underling problem and causes models to overfit to that individual objective.

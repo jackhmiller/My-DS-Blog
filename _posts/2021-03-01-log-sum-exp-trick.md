@@ -1,6 +1,5 @@
 ---
 title: The Log-Sum-Exp Trick
-tags: [""]
 created: 2023-03-09 14:47
 toc: true
 layout: post

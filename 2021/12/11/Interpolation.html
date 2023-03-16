@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="twitter:card" content="summary_large_image" /><!-- Begin Jekyll SEO tag v2.6.1 -->
+<title>Trying to Make Sense of Neural Network Generalization | Concept Drift</title>
+<meta name="generator" content="Jekyll v4.1.1" />
+<meta property="og:title" content="Trying to Make Sense of Neural Network Generalization" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Trying to make sense of interpolation, generalization, and the theoretical foundations that connect them like the Universal Approximation Theory." />
+<meta property="og:description" content="Trying to make sense of interpolation, generalization, and the theoretical foundations that connect them like the Universal Approximation Theory." />
+<link rel="canonical" href="https://jackhmiller.github.io/My-DS-Blog/2021/12/11/Interpolation.html" />
+<meta property="og:url" content="https://jackhmiller.github.io/My-DS-Blog/2021/12/11/Interpolation.html" />
+<meta property="og:site_name" content="Concept Drift" />
+<meta property="og:image" content="https://jackhmiller.github.io/My-DS-Blog/images/interp.png" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2021-12-11T00:00:00-06:00" />
+<script type="application/ld+json">
+{"url":"https://jackhmiller.github.io/My-DS-Blog/2021/12/11/Interpolation.html","@type":"BlogPosting","headline":"Trying to Make Sense of Neural Network Generalization","dateModified":"2021-12-11T00:00:00-06:00","datePublished":"2021-12-11T00:00:00-06:00","image":"https://jackhmiller.github.io/My-DS-Blog/images/interp.png","mainEntityOfPage":{"@type":"WebPage","@id":"https://jackhmiller.github.io/My-DS-Blog/2021/12/11/Interpolation.html"},"description":"Trying to make sense of interpolation, generalization, and the theoretical foundations that connect them like the Universal Approximation Theory.","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/My-DS-Blog/assets/css/style.css"><link type="application/atom+xml" rel="alternate" href="https://jackhmiller.github.io/My-DS-Blog/feed.xml" title="Concept Drift" /><link rel="shortcut icon" type="image/x-icon" href="/My-DS-Blog/images/nn_JFc_icon.ico">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Primer/15.2.0/primer.css" integrity="sha512-xTz2ys4coGAOz8vuV1NcQBkgVmKhsSEtjbqyMJbBHRplFuvKIUo6xhLHpAyPt9mfR6twHJgn9OgVLuqOvjeBhg==" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.14.0/css/all.min.css" integrity="sha512-1PKOgIY59xJ8Co8+NE6FZ+LOAZKjy+KY8iq0G4B3CyeY6wYHN3yt9PW0XpSriVlkMXe40PTKnXrLnZ9+fkDaog==" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.12.0/katex.min.css" integrity="sha512-h7nl+xz8wgDlNM4NqKEM4F1NkIRS17M9+uJwIGwuo8vGqIl4BhuCKdxjWEINm+xyrUjNCnK5dCrhM0sj+wTIXw==" crossorigin="anonymous" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.12.0/katex.min.js" integrity="sha512-/CMIhXiDA3m2c9kzRyd97MTb3MC6OVnx4TElQ7fkkoRghwDf6gi41gaT1PwF270W6+J60uTmwgeRpNpJdRV6sg==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.12.0/contrib/auto-render.min.js" integrity="sha512-Do7uJAaHZm5OLrIv/yN4w0iG1dbu01kzdMNnFfu/mAqgUk6Nniv2JYHcwH+cNwjqgLcqcuBBk+JRvprLVI8azg==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha512-0doc9hKxR3PYwso42RD1p5ySZpzzuDiOwMrdCEh2WdJZCjcmFKc/wEnL+z8fBQrnHoiNWbo+3fiGkOYXBdQp4A==" crossorigin="anonymous"></script>
+    <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement( document.body, {
+        delimiters: [
+            {left: "$$", right: "$$", display: true},
+            {left: "[%", right: "%]", display: true},
+            {left: "$", right: "$", display: false}
+        ]}
+        );
+    });
+    </script>
+
+
+<script>
+function wrap_img(fn) {
+    if (document.attachEvent ? document.readyState === "complete" : document.readyState !== "loading") {
+        var elements = document.querySelectorAll(".post img");
+        Array.prototype.forEach.call(elements, function(el, i) {
+            if (el.getAttribute("title") && (el.className != "emoji")) {
+                const caption = document.createElement('figcaption');
+                var node = document.createTextNode(el.getAttribute("title"));
+                caption.appendChild(node);
+                const wrapper = document.createElement('figure');
+                wrapper.className = 'image';
+                el.parentNode.insertBefore(wrapper, el);
+                el.parentNode.removeChild(el);
+                wrapper.appendChild(el);
+                wrapper.appendChild(caption);
+            }
+        });
+    } else { document.addEventListener('DOMContentLoaded', fn); }
+}
+window.onload = wrap_img;
+</script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function(){
+    // add link icon to anchor tags
+    var elem = document.querySelectorAll(".anchor-link")
+    elem.forEach(e => (e.innerHTML = '<i class="fas fa-link fa-xs"></i>'));
+    });
+</script>
+</head>
+<body><header class="site-header">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/My-DS-Blog/">Concept Drift</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/My-DS-Blog/CV/">My CV</a><a class="page-link" href="/My-DS-Blog/about/">About Me</a><a class="page-link" href="/My-DS-Blog/search/">Search</a><a class="page-link" href="/My-DS-Blog/categories/">Tags</a></div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">Trying to Make Sense of Neural Network Generalization</h1><p class="page-description">Trying to make sense of interpolation, generalization, and the theoretical foundations that connect them like the Universal Approximation Theory.</p><p class="post-meta post-meta-title"><time class="dt-published" datetime="2021-12-11T00:00:00-06:00" itemprop="datePublished">
+        Dec 11, 2021
+      </time>
+       • <span class="read-time" title="Estimated read time">
+    
+    
+      14 min read
+    
+</span></p>
+
+    
+
+    </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <ul class="section-nav">
+<li class="toc-entry toc-h4"><a href="#a-lack-of-theory">A Lack of Theory</a></li>
+<li class="toc-entry toc-h4"><a href="#what-is-interpolation-and-extrapolation">What is Interpolation (and Extrapolation)?</a></li>
+<li class="toc-entry toc-h4"><a href="#how-does-this-relate-to-a-models-ability-to-generalize">How does this relate to a model’s ability to generalize?</a></li>
+<li class="toc-entry toc-h4"><a href="#universal-approximation-theorem">Universal Approximation Theorem</a></li>
+<li class="toc-entry toc-h4"><a href="#putting-it-all-together">Putting it all Together</a></li>
+</ul><p>I am sure that by now you have heard the jokes and seen the memes that AI is essentially just a bunch of  <code class="language-plaintext highlighter-rouge">if</code> <code class="language-plaintext highlighter-rouge">else</code> statements. Take this tweet below:</p>
+
+<blockquote class="twitter-tweet">
+<p lang="en" dir="ltr">"Uber will use artificial intelligence to identify drunk passengers. It will use factors like time of day, pickup location, and how long a user interacts with the app before making a decision."<br><br>That's not AI.<br>That's an if statement.</p>— @Nick_Craver@infosec.exchange (@Nick_Craver) <a href="https://twitter.com/Nick_Craver/status/1005033951482834945?ref_src=twsrc%5Etfw">June 8, 2018</a>
+</blockquote>
+<script async="" src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+
+<p>Obviously this is a gross oversimplification of what AI can do. But because of all of the hype, many have been quick to belittle or poke holes the actual power of AI applications like deep learning. In my opinion, a lot of this stems from the fact that even several years after the mainstream adoption of deep learning applications and capabilities, they still represent a <em>black box</em> system: a model takes millions of data points as inputs and correlates specific data features to produce an output. That process is largely self-directed and is generally difficult for data scientists, programmers and users to interpret.</p>
+
+<p>Similarly, this difficulty can be stated from a more theoretical perspective: On an infinite input domain like $\mathbb{R}^n$, no finite number of samples is enough to uniquely determine a single function, even approximately. Even accounting for bounds and discretization of the input, and even for the symmetries our architectures impose on the output function, our training sets are microscopic compared to the sizes of our input domains. The problem that neural networks successfully solve every day should be impossible.</p>
+
+<h4 id="a-lack-of-theory">
+<a class="anchor" href="#a-lack-of-theory" aria-hidden="true"><span class="octicon octicon-link"></span></a>A Lack of Theory</h4>
+<p>This lack of explainability has given rise to a subset of deep learning  that specifically seeks to address and develop methods to make machine and deep learning systems more understandable. The most notable would be , SHAP (SHapley Additive exPlanations) a game theoretic approach to explain the output of any machine learning model. Yet these efforts have not addressed the underlying yet pronounced lack of theory explaining why deep learning works so well. Take for example, this excerpt from a paper aptly titled “Why does deep and cheap learning work so well?”:</p>
+
+<blockquote>
+  <p>However, it is still not fully understood why deep learning works so well. In contrast to GOFAI (“good old-fashioned AI”) algorithms that are hand-crafted and fully understood analytically, many algorithms using artificial neural networks are understood only at a heuristic level, where we empirically know that certain training protocols employing large data sets will result in excellent performance.</p>
+</blockquote>
+
+<p>Put even more bluntly in a NeurIPS 2017 presentation:</p>
+<blockquote>
+  <p>Batch Norm is a technique that speeds up gradient descent on deep nets… Batch Norm has become a foundational operation for machine learning. It works amazingly well. <strong>But we know almost nothing about it.</strong></p>
+</blockquote>
+
+<p>Clearly, this was a somewhat lighthearted talk that didn’t put heavy emphasis on nuance. The claim that “we know almost nothing” about Batch Norm was probably not meant to be taken literally. However, it’s been taken both seriously and literally by much of our community as a statement about our then-current (i.e. as of 2017) best scientificc understanding. But it is hard to give a succinct summary of what Batch Norm does, because there are multiple effects going on, and which ones are important in any particular case will depend on the specific task, optimization algorithm,
+and architecture.</p>
+
+<p>This example applies to the overall performance of neural networks, where despite their massive size, successful deep artificial neural networks often exhibit a remarkably small difference between training and test performance. The lack of a concise and singular explanation for this ability, coupled with a dearth of theoretical study of individual components, has allowed observers to claim that <em>“deep learning is not as impressive as you think because it’s mere interpolation resulting from glorified curve fitting.”</em></p>
+
+<h4 id="what-is-interpolation-and-extrapolation">
+<a class="anchor" href="#what-is-interpolation-and-extrapolation" aria-hidden="true"><span class="octicon octicon-link"></span></a>What is Interpolation (and Extrapolation)?</h4>
+
+<p>The success of deep learning has led to a lot of recent interest in understanding the properties of “interpolating” neural network models, that achieve (near-)zero training loss. Interpolation was first defined as predicting the possible realization of a stationary Gaussian process at a time position lying in-between observations. This is not to be confused with “extrapolation”, defined as predicting the future (realization) of a stationary Gaussian process based on past and current realizations.
+It is critical to distinguish between interpolation, and the idea of an interpolation regime,  which occur whenever the model has 0 training loss on the data.</p>
+
+<p>Interpolation and extrapolation provide an intuitive geometrical characterization on the location of new samples with respect to a given dataset. Those terms are commonly used as geometrical proxy to predict a model’s performances on unseen samples and many have reached the conclusion that a model’s generalization performance depends on how a model interpolates. In other words, how accurate is a model within a dataset’s convex-hull determines its generalization performances.</p>
+
+<p>To put it differently, conventional wisdom in machine learning offers the following about generalization:</p>
+<ol>
+  <li>A model that is too simple will <em>underfit</em> the true patterns in the training data, and thus, it will predict poorly on new data.</li>
+  <li>A model that is too complicated will <em>overfit</em> spurious patterns in the training data; such a model will also predict poorly on new data.</li>
+</ol>
+
+<p>So then how can overparameterized and overfit deep learning models achieve good generalization? Furthermore, it has been proven that the behavior of a model within a training set’s convex hull barely impacts that model’s generalization performance since new samples lie almost surely outside of that convex hull. This observation holds whether we are considering the original data space, or embeddings. The argument is  essentially based on the well-known curse of dimensionality: in high dimension, every point is far from another. For example, in order to maintain a constant probability to be in interpolation regime, the training set size has to increase exponentially with $\mathbb{D}$ regardless of the underlying intrinsic manifold dimension where $\mathbb{D}$ is the dimension of the lowest dimensional affine subspace including the entire data manifold i.e. the convex hull dimension. Thus in high dimension, any new point almost surely lie outside of the training set convex hull. Therefore, finding samples in interpolation regime becomes exponentially difficult with respect to the considered data dimension, and dimensionality reduction methods loose the interpolation/extrapolation information and lead to visual misconceptions  skewed towards interpolation.</p>
+
+<p>Is it then a (mis)conception that state-of-the-art algorithms work so well because of their ability to correctly interpolate training data? If this is the case, then how come deep learning models generalize at all? Shouldn’t they just learn an ad hoc mapping between training inputs and targets, like a fancy dictionary? What expectation can we have that this mapping will work for new inputs?</p>
+
+<h4 id="how-does-this-relate-to-a-models-ability-to-generalize">
+<a class="anchor" href="#how-does-this-relate-to-a-models-ability-to-generalize" aria-hidden="true"><span class="octicon octicon-link"></span></a>How does this relate to a model’s ability to generalize?</h4>
+<p>The critical component here that allows us to resolve the apparent contradiction between the inability to interpolate in high dimensional setting and a neural network’s ability to generalize, is the idea of a <em>manifold</em>. A “manifold” is simply a lower-dimensional subspace of some parent space that is locally similar to a linear (Euclidian) space. (i.e. it is continuous and smooth). The fact that this property (latent space = very small subspace + continuous &amp; structured) applies to so many problems is called the <em>manifold hypothesis</em>. More generally, the manifold hypothesis posits that all natural data lies on a low-dimensional manifold within the high-dimensional space where it is encoded. This concept is central to understanding the nature of generalization in ML.</p>
+
+<p>The manifold hypothesis implies that</p>
+<ul>
+  <li>Machine learning models only have to fit relatively simple, low-dimensional, highly structured subspaces within their potential input space (latent manifolds).</li>
+  <li>Within one of these manifolds, it’s always possible to interpolate between two inputs, that is to say, morph one into another via a continuous path along which all points fall on the manifold.</li>
+</ul>
+
+<p>As a result, you can use a <em>small subset</em> of the latent space to fit a <em>curve</em> that approximately matches the latent space. See this tweet of François Chollet from an epic and extremely informative twitter thread:</p>
+<blockquote class="twitter-tweet">
+<p lang="en" dir="ltr">It's only with a sufficiently dense sampling of the latent manifold that it becomes possible to make sense of new inputs by interpolating between past training inputs without having to leverage additional priors. <a href="https://t.co/SmRvEN2NXS">pic.twitter.com/SmRvEN2NXS</a></p>— François Chollet (@fchollet) <a href="https://twitter.com/fchollet/status/1450540673891913730?ref_src=twsrc%5Etfw">October 19, 2021</a>
+</blockquote>
+<script async="" src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+
+<p>So deep learning achieves (local) generalization via interpolation on a learned approximation of the data manifold. But what does this mean, from a practical perspective?</p>
+
+<h4 id="universal-approximation-theorem">
+<a class="anchor" href="#universal-approximation-theorem" aria-hidden="true"><span class="octicon octicon-link"></span></a>Universal Approximation Theorem</h4>
+<p>The theorem states, in essence, that under a few conditions, any continuous function <em>f</em> can be modelled with a neural network with one hidden layer and a sufficient number of units. One of the requirements is that the activation function must have some form of nonlinearity. The Universal Approximation Theorem at most implies that neural networks are a reasonable model, but does not suggest that they are superior to other methods (e.g. polynomials, splines, wavelets, Fourier expansions, …).</p>
+
+<p>There’s some further ways to break down the Universal approximation theorem. For example, it requires the activation function be nonconstant, bounded, and monotonically-increasing continuous function. Take the case of the sigmoidal activation, which asymptotes out to 0 as x→−∞ and to 1 as x→+∞. One of the original motivations for using the sigmoidal activation was that it can act like a switch. Allowing the weights to have arbitrary magnitude, i.e. no hard limit on the size of the parameter values, we can effectively shift sigmoids into their “off” states with very negative values and shift sigmoids into their “on” states with very positive values. And training a single hidden layer corresponds to learning a good configuration of parameters. By allowing for the weights to have unbounded size (both in the negative and positive sense), we can interpret the single hidden layer NN as partitioning the domain into sub-spaces where a specific configuration of the sigmoidals are “on” and contribute to the function approximation and the others are switched “off.” Now if we allow ourselves to have a ton of these sigmoids, you start to get some intuition as to why the sigmoidal Universal Approximation Theorem is true.</p>
+
+<p>From the Universal Approximation Theorem, we understand that neural networks may not be ‘intelligent’ in the sense that humans often think of intelligence, but are complex estimators hidden under a guise of multidimensionality, which makes its ability — which would seem ordinary in two or three dimensions — seem impressive.</p>
+
+<p>Another way to think about it is to consider a neural network as a kind of ensemble. Every neural network has a pre-ultimate layer that you can think of as a collection of intermediate representations of your problem. The outputs of this layer are then aggregated (usually using a dense layer) for making the final prediction. This is like ensembling many smaller models. Again, if the smaller models memorized the data, even if each would overfit, by aggregating them, the effects would hopefully cancel out.</p>
+
+<h4 id="putting-it-all-together">
+<a class="anchor" href="#putting-it-all-together" aria-hidden="true"><span class="octicon octicon-link"></span></a>Putting it all Together</h4>
+
+<p>Each of these above mentioned intermediate layers, where we can learn a via a manifold of the latent space, allows us to separate the input space into exponentially more linear response regions than shallow networks, despite using the same number of computational units. This means that <strong>representational capacity scales with depth</strong>. Put another way, deep networks are able to <em>identify</em> an exponential number of input neighborhoods by mapping them to a common output of some intermediary hidden layer. The computations carried out on the activations of this intermediary layer are replicated many times, once in each of the identified neighborhoods.</p>
+
+<p>From a geometric perspective, each hidden layer of a deep neural network can be associated with a folding operator. Each hidden layer folds the space of activations of the previous layer. In turn, a deep neural network effectively folds its input-space recursively, starting with the first layer. The consequence of this recursive folding is that any function computed on the final folded space will apply to all the collapsed subsets identified by the map corresponding to the succession of foldings. This means that in a deep model any partitioning of the last layer’s image-space is replicated in all input-space regions which are identified by the succession of foldings. Space foldings are not restricted to foldings along coordinate axes and they do not have to preserve lengths. Instead, the space is folded depending on the orientations and shifts encoded in the input weights W and biases b and on the nonlinear activation function used at each hidden layer.</p>
+
+<p>Consider a ReLU unit assigned to one of the hidden layers of a network, represented as follows:
+<span class="katex-error" title="ParseError: KaTeX parse error: Can't use function '$' in math mode at position 1: $̲z_{k}= ReLU(w_{…" style="color:#cc0000">$z_{k}= ReLU(w_{k}\cdot x + b_k)</span>
+The area in the parenthesis (input to the ReLU) is the equation of a hyperplane:</p>
+<ul>
+  <li>$w_K$ is the orientation of the hyperplane</li>
+  <li>$b_k$ is the offset</li>
+</ul>
+
+<p>This hyperplane is dividing the input space into two halves, one where the ReLU has a positive output, and the other where the ReLU output is zero. That is only for a single $k$ in a single layer- so for all $k$’s in a layer, it is going to put down multiple hyperplanes in high dimensional space to partition up the input into convex polytopes (polygons in high dimension). The below image shows the different hyperplanes of different $k$’s for a single layer, with the decision boundary as the red line and the different polytopes as shaded regions. 
+![[hyperplane representation.png]]</p>
+
+<p>For a second hidden layer, the hyperplanes are folded by the previous layer’s hyperplanes to maintain continuity in mapping, through to the decision boundary:</p>
+
+<p>![[multilayer spline hyperplane cuts.png]]![[spline decision boundary.png]]</p>
+
+<p>So what is happening here is not <em>alchemy</em>. Rather, the model is applying a hyperplane for each neuron in each hidden layer, by utilizing subsequent manifolds of the latent space that represent the output of one layer and the input to the subsequent layer. The corresponding multidimensional decision boundaries layer by layer are interpolated together, much akin to how a spline behaves, and then <em>pulled together</em> in the final layer to create a decision boundary.</p>
+
+<hr>
+<p><strong>Sources</strong>:
+[^1]: Montúfar, G., Pascanu, R., Cho, K., &amp; Bengio, Y.. (2014). On the Number of Linear Regions of Deep Neural Networks.
+[^2]: Henry W. Lin, Max Tegmark, &amp; David Rolnick (2017). Why Does Deep and Cheap Learning Work So Well?<em>. Journal of Statistical Physics, _168</em>(6), 1223–1247.
+[^3]: P. H. P. Savarese, I. Evron, D. Soudry, and N. Srebro, “How do infinite width bounded norm networks look in function space?” in Conference on Learning Theory, COLT 2019, 25-28 June 2019, Phoenix, AZ, USA, 2019, pp. 2667–2690
+[^4]: A Spline Perspective of Deep Learning - Richard Baraniuk - FFT Feb 28th, 2022 https://www.youtube.com/watch?v=5AMxhdj-96Q
+[^6]: https://github.com/slundberg/shap
+[^8]: Ali Rahimi. Back when we were young. NeurIPS Test of Time Talk, 2017.
+[^9]: Wiener, N. (1949). Extrapolation, interpolation, and smoothing of stationary time series, with engineering applications.
+[^10]: Chatterji, N. S., Long, P. M., and Bartlett, P. L. (2021). When does gradient descent with logistic loss find interpolating two-layer networks? Journal of Machine Learning Research, 22(159):1–48.
+[^11]: Balestriero, R., Pesenti, J., &amp; LeCun, Y.. (2021). Learning in High Dimension Always Amounts to Extrapolation.
+[^12]: A feedforward network with a linear output layer and at least one hidden layer with any “squashing” activation function (such as the logistic sigmoid activation function) can approximate any function from one finite-dimensional space to another with any desired non-zero amount of error, provided that the network is given enough hidden units</p>
+
+  </div><a class="u-url" href="/My-DS-Blog/2021/12/11/Interpolation.html" hidden></a>
+</article>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/My-DS-Blog/"></data>
+
+  <div class="wrapper">
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col">
+        <p class="feed-subscribe">
+          <a href="https://jackhmiller.github.io/My-DS-Blog/feed.xml">
+            <svg class="svg-icon orange">
+              <use xlink:href="/My-DS-Blog/assets/minima-social-icons.svg#rss"></use>
+            </svg><span>Subscribe</span>
+          </a>
+        </p>
+      </div>
+      <div class="footer-col">
+        <p>050-709-2944 | Jack.harris.miller@gmail.com</p>
+      </div>
+    </div>
+
+    <div class="social-links"><ul class="social-media-list"><li>
+  <a rel="me" href="https://github.com/jackhmiller" target="_blank" title="github">
+    <svg class="svg-icon grey">
+      <use xlink:href="/My-DS-Blog/assets/minima-social-icons.svg#github"></use>
+    </svg>
+  </a>
+</li>
+</ul>
+</div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>

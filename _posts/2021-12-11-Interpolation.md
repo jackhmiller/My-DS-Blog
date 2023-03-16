@@ -78,11 +78,11 @@ The area in the parenthesis (input to the ReLU) is the equation of a hyperplane:
 - $b_k$ is the offset
 
 This hyperplane is dividing the input space into two halves, one where the ReLU has a positive output, and the other where the ReLU output is zero. That is only for a single $k$ in a single layer- so for all $k$'s in a layer, it is going to put down multiple hyperplanes in high dimensional space to partition up the input into convex polytopes (polygons in high dimension). The below image shows the different hyperplanes of different $k$'s for a single layer, with the decision boundary as the red line and the different polytopes as shaded regions. 
-![[hyperplane representation.png]]
+![[images/hyperplane_representation.png]]
 
 For a second hidden layer, the hyperplanes are folded by the previous layer's hyperplanes to maintain continuity in mapping, through to the decision boundary:
 
-![[multilayer spline hyperplane cuts.png]]![[spline decision boundary.png]]
+![[images/multilayer_spline_hyperplane_cuts.png]]![[images/spline_decision_boundary.png]]
 
 So what is happening here is not *alchemy*. Rather, the model is applying a hyperplane for each neuron in each hidden layer, by utilizing subsequent manifolds of the latent space that represent the output of one layer and the input to the subsequent layer. The corresponding multidimensional decision boundaries layer by layer are interpolated together, much akin to how a spline behaves, and then *pulled together* in the final layer to create a decision boundary.  
 

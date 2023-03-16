@@ -24,7 +24,7 @@ This lack of explainability has given rise to a subset of deep learning  that sp
 Put even more bluntly in a NeurIPS 2017 presentation:
 > Batch Norm is a technique that speeds up gradient descent on deep nets... Batch Norm has become a foundational operation for machine learning. It works amazingly well. **But we know almost nothing about it.**
 
-Clearly, this was a somewhat lighthearted talk that didn't put heavy emphasis on nuance. The claim that "we know almost nothing" about Batch Norm was probably not meant to be taken literally. However, it's been taken both seriously and literally by much of our community as a statement about our then-current (i.e. as of 2017) best scientificc understanding. But it is hard to give a succinct summary of what Batch Norm does, because there are multiple effects going on, and which ones are important in any particular case will depend on the specific task, optimization algorithm,
+Clearly, this was a somewhat lighthearted talk that didn't put heavy emphasis on nuance. The claim that "we know almost nothing" about Batch Norm was probably not meant to be taken literally. However, it's been taken both seriously and literally by much of our community as a statement about our then-current (i.e. as of 2017) best scientific understanding. But it is hard to give a succinct summary of what Batch Norm does, because there are multiple effects going on, and which ones are important in any particular case will depend on the specific task, optimization algorithm,
 and architecture.
 
 This example applies to the overall performance of neural networks, where despite their massive size, successful deep artificial neural networks often exhibit a remarkably small difference between training and test performance. The lack of a concise and singular explanation for this ability, coupled with a dearth of theoretical study of individual components, has allowed observers to claim that *"deep learning is not as impressive as you think because it’s mere interpolation resulting from glorified curve fitting."*
@@ -72,7 +72,7 @@ Each of these above mentioned intermediate layers, where we can learn a via a ma
 From a geometric perspective, each hidden layer of a deep neural network can be associated with a folding operator. Each hidden layer folds the space of activations of the previous layer. In turn, a deep neural network effectively folds its input-space recursively, starting with the first layer. The consequence of this recursive folding is that any function computed on the final folded space will apply to all the collapsed subsets identified by the map corresponding to the succession of foldings. This means that in a deep model any partitioning of the last layer’s image-space is replicated in all input-space regions which are identified by the succession of foldings. Space foldings are not restricted to foldings along coordinate axes and they do not have to preserve lengths. Instead, the space is folded depending on the orientations and shifts encoded in the input weights W and biases b and on the nonlinear activation function used at each hidden layer.
 
 Consider a ReLU unit assigned to one of the hidden layers of a network, represented as follows:
-$$$z_{k}= ReLU(w_{k}\cdot x + b_k)$$
+$$z_{k}= ReLU(w_{k}\cdot x + b_k)$$
 The area in the parenthesis (input to the ReLU) is the equation of a hyperplane:
 - $w_K$ is the orientation of the hyperplane
 - $b_k$ is the offset
@@ -82,7 +82,7 @@ This hyperplane is dividing the input space into two halves, one where the ReLU 
 
 For a second hidden layer, the hyperplanes are folded by the previous layer's hyperplanes to maintain continuity in mapping, through to the decision boundary:
 
-![[images/multilayer_spline_hyperplane_cuts.png]]![[images/spline_decision_boundary.png]]
+![Hyperplane Cuts](images/multilayer_spline_hyperplane_cuts.png) ![Spline-like Decision Boundary](images/spline_decision_boundary.png)
 
 So what is happening here is not *alchemy*. Rather, the model is applying a hyperplane for each neuron in each hidden layer, by utilizing subsequent manifolds of the latent space that represent the output of one layer and the input to the subsequent layer. The corresponding multidimensional decision boundaries layer by layer are interpolated together, much akin to how a spline behaves, and then *pulled together* in the final layer to create a decision boundary.  
 
@@ -96,12 +96,21 @@ So what is happening here is not *alchemy*. Rather, the model is applying a hype
 ---
 **Sources**:
 [^1]: Montúfar, G., Pascanu, R., Cho, K., & Bengio, Y.. (2014). On the Number of Linear Regions of Deep Neural Networks.
+<br/>
 [^2]: Henry W. Lin, Max Tegmark, & David Rolnick (2017). Why Does Deep and Cheap Learning Work So Well?_. Journal of Statistical Physics, _168_(6), 1223–1247.
+<br/>
 [^3]: P. H. P. Savarese, I. Evron, D. Soudry, and N. Srebro, “How do infinite width bounded norm networks look in function space?” in Conference on Learning Theory, COLT 2019, 25-28 June 2019, Phoenix, AZ, USA, 2019, pp. 2667–2690
+<br/>
 [^4]: A Spline Perspective of Deep Learning - Richard Baraniuk - FFT Feb 28th, 2022 https://www.youtube.com/watch?v=5AMxhdj-96Q
+<br/>
 [^6]: https://github.com/slundberg/shap
+<br/>
 [^8]: Ali Rahimi. Back when we were young. NeurIPS Test of Time Talk, 2017.
+<br/>
 [^9]: Wiener, N. (1949). Extrapolation, interpolation, and smoothing of stationary time series, with engineering applications.
+<br/>
 [^10]: Chatterji, N. S., Long, P. M., and Bartlett, P. L. (2021). When does gradient descent with logistic loss find interpolating two-layer networks? Journal of Machine Learning Research, 22(159):1–48.
+<br/>
 [^11]: Balestriero, R., Pesenti, J., & LeCun, Y.. (2021). Learning in High Dimension Always Amounts to Extrapolation.
+<br/>
 [^12]: A feedforward network with a linear output layer and at least one hidden layer with any “squashing” activation function (such as the logistic sigmoid activation function) can approximate any function from one finite-dimensional space to another with any desired non-zero amount of error, provided that the network is given enough hidden units

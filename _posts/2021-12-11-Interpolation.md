@@ -78,16 +78,17 @@ The area in the parenthesis (input to the ReLU) is the equation of a hyperplane:
 - $b_k$ is the offset
 
 This hyperplane is dividing the input space into two halves, one where the ReLU has a positive output, and the other where the ReLU output is zero. That is only for a single $k$ in a single layer- so for all $k$'s in a layer, it is going to put down multiple hyperplanes in high dimensional space to partition up the input into convex polytopes (polygons in high dimension). The below image shows the different hyperplanes of different $k$'s for a single layer, with the decision boundary as the red line and the different polytopes as shaded regions. 
-![Hyperplanes](_images/hyperplane_representation.png)
+![]({{ site.baseurl }}/images/hyperplane_representation.png "Hyperplanes")
+
 
 For a second hidden layer, the hyperplanes are folded by the previous layer's hyperplanes to maintain continuity in mapping, through to the decision boundary:
+![]({{ site.baseurl }}/images/multilayer_spline_hyperplane_cuts.png "Hyperplane Cuts")
 
-![Hyperplane Cuts](_images/multilayer_spline_hyperplane_cuts.png) ![Spline-like Decision Boundary](_images/spline_decision_boundary.png)
 
 So what is happening here is not *alchemy*. Rather, the model is applying a hyperplane for each neuron in each hidden layer, by utilizing subsequent manifolds of the latent space that represent the output of one layer and the input to the subsequent layer. The corresponding multidimensional decision boundaries layer by layer are interpolated together, much akin to how a spline behaves, and then *pulled together* in the final layer to create a decision boundary.  
 
-![Decision Boundary for Different Architectures](_images/decision_boundary_relu.png)
-<small>Source: Berner, Julius & Grohs, Philipp & Kutyniok, Gitta & Petersen, Philipp. (2021). The Modern Mathematics of Deep Learning. <small>
+![]({{ site.baseurl }}/images/decision_boundary_relu.png "Decision Boundary for Different Architectures")
+<small>Source: Berner, Julius & Grohs, Philipp & Kutyniok, Gitta & Petersen, Philipp. (2021). The Modern Mathematics of Deep Learning.<small>
 
 In summary, each neuron splits the space into two affine linear regions separated by a hyperplane. A shallow ReLU network with $n$ neurons in the hidden layer therefore produces a number of regions defined by $n$ hyperplanes. Therefore deepening neural networks correspond to certain folding of the input space. Through this interpretation it can be seen that composing neural networks can lead to a multiplication of the number of regions of the individual networks, resulting in an exponential efficiency of deep neural networks in generating affine linear regions.
 

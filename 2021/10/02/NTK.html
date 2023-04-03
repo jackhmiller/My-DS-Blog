@@ -111,63 +111,7 @@ window.onload = wrap_img;
 <li class="toc-entry toc-h4"><a href="#theoretical-justification-for-linear-approximation">Theoretical Justification for Linear Approximation?</a></li>
 <li class="toc-entry toc-h4"><a href="#neural-tangent-kernel-ntk">Neural Tangent Kernel (NTK)</a></li>
 <li class="toc-entry toc-h4"><a href="#why-is-this-interesting">Why is this interesting?</a></li>
-</ul><p>##### Table of Contents</p>
-<ol>
-  <li><a href="#Introduction">Introduction</a></li>
-  <li><a href="#Motivation">Motivation</a></li>
-  <li>
-    <table>
-      <tbody>
-        <tr>
-          <td>[[2021-10-02-NTK#What is a Kernel?</td>
-          <td>What is a Kernel?]]</td>
-        </tr>
-      </tbody>
-    </table>
-  </li>
-  <li>
-    <table>
-      <tbody>
-        <tr>
-          <td>[[2021-10-02-NTK#A Simple Illustration</td>
-          <td>A Simple Illustration]]</td>
-        </tr>
-      </tbody>
-    </table>
-  </li>
-  <li>
-    <table>
-      <tbody>
-        <tr>
-          <td>[[2021-10-02-NTK#Theoretical Justification for Linear Approximation?</td>
-          <td>Theoretical Justification]]</td>
-        </tr>
-      </tbody>
-    </table>
-  </li>
-  <li>
-    <table>
-      <tbody>
-        <tr>
-          <td>[[2021-10-02-NTK#Neural Tangent Kernel (NTK)</td>
-          <td>Neural Tangent Kernel (NTK)]]</td>
-        </tr>
-      </tbody>
-    </table>
-  </li>
-  <li>
-    <table>
-      <tbody>
-        <tr>
-          <td>[[2021-10-02-NTK#Why is this interesting?</td>
-          <td>Conclusion]]</td>
-        </tr>
-      </tbody>
-    </table>
-  </li>
-</ol>
-
-<h4 id="introduction">
+</ul><h4 id="introduction">
 <a class="anchor" href="#introduction" aria-hidden="true"><span class="octicon octicon-link"></span></a>Introduction</h4>
 <p>Much of the research on deep learning theory over the past few years addresses the common theme of analyzing neural networks in the <strong>infinite-width</strong> limit. At first, this limit may seem impractical and even pointless to study. However, it turns out that neural networks in this regime simplify to <strong>linear models</strong> with a kernel called the <strong>neural tangent kernel</strong>. These results are significant as they give a way of understanding why neural networks converge to a optimal solution. Gradient descent is therefore very simple to study, leads to a <strong>proof of convergence of gradient descent</strong> to 0 training loss. Neural networks are know to be highly non-convex objects and so understanding their convergence under training is highly non-trivial.</p>
 

@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="twitter:card" content="summary_large_image" /><!-- Begin Jekyll SEO tag v2.6.1 -->
+<title>Neural Tangent Kernel | Concept Drift</title>
+<meta name="generator" content="Jekyll v4.1.1" />
+<meta property="og:title" content="Neural Tangent Kernel" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="When neural networks and more general non-linear models are accurately approximated by their linearizations" />
+<meta property="og:description" content="When neural networks and more general non-linear models are accurately approximated by their linearizations" />
+<link rel="canonical" href="https://jackhmiller.github.io/My-DS-Blog/2021/10/02/NTK.html" />
+<meta property="og:url" content="https://jackhmiller.github.io/My-DS-Blog/2021/10/02/NTK.html" />
+<meta property="og:site_name" content="Concept Drift" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2021-10-02T00:00:00-05:00" />
+<script type="application/ld+json">
+{"url":"https://jackhmiller.github.io/My-DS-Blog/2021/10/02/NTK.html","@type":"BlogPosting","headline":"Neural Tangent Kernel","dateModified":"2021-10-02T00:00:00-05:00","datePublished":"2021-10-02T00:00:00-05:00","mainEntityOfPage":{"@type":"WebPage","@id":"https://jackhmiller.github.io/My-DS-Blog/2021/10/02/NTK.html"},"description":"When neural networks and more general non-linear models are accurately approximated by their linearizations","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/My-DS-Blog/assets/css/style.css"><link type="application/atom+xml" rel="alternate" href="https://jackhmiller.github.io/My-DS-Blog/feed.xml" title="Concept Drift" /><link rel="shortcut icon" type="image/x-icon" href="/My-DS-Blog/images/nn_JFc_icon.ico">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Primer/15.2.0/primer.css" integrity="sha512-xTz2ys4coGAOz8vuV1NcQBkgVmKhsSEtjbqyMJbBHRplFuvKIUo6xhLHpAyPt9mfR6twHJgn9OgVLuqOvjeBhg==" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.14.0/css/all.min.css" integrity="sha512-1PKOgIY59xJ8Co8+NE6FZ+LOAZKjy+KY8iq0G4B3CyeY6wYHN3yt9PW0XpSriVlkMXe40PTKnXrLnZ9+fkDaog==" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.12.0/katex.min.css" integrity="sha512-h7nl+xz8wgDlNM4NqKEM4F1NkIRS17M9+uJwIGwuo8vGqIl4BhuCKdxjWEINm+xyrUjNCnK5dCrhM0sj+wTIXw==" crossorigin="anonymous" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.12.0/katex.min.js" integrity="sha512-/CMIhXiDA3m2c9kzRyd97MTb3MC6OVnx4TElQ7fkkoRghwDf6gi41gaT1PwF270W6+J60uTmwgeRpNpJdRV6sg==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.12.0/contrib/auto-render.min.js" integrity="sha512-Do7uJAaHZm5OLrIv/yN4w0iG1dbu01kzdMNnFfu/mAqgUk6Nniv2JYHcwH+cNwjqgLcqcuBBk+JRvprLVI8azg==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha512-0doc9hKxR3PYwso42RD1p5ySZpzzuDiOwMrdCEh2WdJZCjcmFKc/wEnL+z8fBQrnHoiNWbo+3fiGkOYXBdQp4A==" crossorigin="anonymous"></script>
+    <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement( document.body, {
+        delimiters: [
+            {left: "$$", right: "$$", display: true},
+            {left: "[%", right: "%]", display: true},
+            {left: "$", right: "$", display: false}
+        ]}
+        );
+    });
+    </script>
+
+
+<script>
+function wrap_img(fn) {
+    if (document.attachEvent ? document.readyState === "complete" : document.readyState !== "loading") {
+        var elements = document.querySelectorAll(".post img");
+        Array.prototype.forEach.call(elements, function(el, i) {
+            if (el.getAttribute("title") && (el.className != "emoji")) {
+                const caption = document.createElement('figcaption');
+                var node = document.createTextNode(el.getAttribute("title"));
+                caption.appendChild(node);
+                const wrapper = document.createElement('figure');
+                wrapper.className = 'image';
+                el.parentNode.insertBefore(wrapper, el);
+                el.parentNode.removeChild(el);
+                wrapper.appendChild(el);
+                wrapper.appendChild(caption);
+            }
+        });
+    } else { document.addEventListener('DOMContentLoaded', fn); }
+}
+window.onload = wrap_img;
+</script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function(){
+    // add link icon to anchor tags
+    var elem = document.querySelectorAll(".anchor-link")
+    elem.forEach(e => (e.innerHTML = '<i class="fas fa-link fa-xs"></i>'));
+    });
+</script>
+</head>
+<body><header class="site-header">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/My-DS-Blog/">Concept Drift</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/My-DS-Blog/CV/">My CV</a><a class="page-link" href="/My-DS-Blog/about/">About Me</a><a class="page-link" href="/My-DS-Blog/search/">Search</a><a class="page-link" href="/My-DS-Blog/categories/">Tags</a></div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">Neural Tangent Kernel</h1><p class="page-description">When neural networks and more general non-linear models are accurately approximated by their linearizations</p><p class="post-meta post-meta-title"><time class="dt-published" datetime="2021-10-02T00:00:00-05:00" itemprop="datePublished">
+        Oct 2, 2021
+      </time>
+       • <span class="read-time" title="Estimated read time">
+    
+    
+      9 min read
+    
+</span></p>
+
+    
+
+    </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <ul class="section-nav">
+<li class="toc-entry toc-h4"><a href="#introduction">Introduction</a></li>
+<li class="toc-entry toc-h4"><a href="#motivation">Motivation</a></li>
+<li class="toc-entry toc-h4"><a href="#what-is-a-kernel">What is a Kernel?</a></li>
+<li class="toc-entry toc-h4"><a href="#a-simple-illustration">A Simple Illustration</a></li>
+<li class="toc-entry toc-h4"><a href="#theoretical-justification-for-linear-approximation">Theoretical Justification for Linear Approximation?</a></li>
+<li class="toc-entry toc-h4"><a href="#neural-tangent-kernel-ntk">Neural Tangent Kernel (NTK)</a></li>
+<li class="toc-entry toc-h4"><a href="#why-is-this-interesting">Why is this interesting?</a></li>
+</ul><p>##### Table of Contents</p>
+<ol>
+  <li><a href="#Introduction">Introduction</a></li>
+  <li><a href="#Motivation">Motivation</a></li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[2021-10-02-NTK#What is a Kernel?</td>
+          <td>What is a Kernel?]]</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[2021-10-02-NTK#A Simple Illustration</td>
+          <td>A Simple Illustration]]</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[2021-10-02-NTK#Theoretical Justification for Linear Approximation?</td>
+          <td>Theoretical Justification]]</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[2021-10-02-NTK#Neural Tangent Kernel (NTK)</td>
+          <td>Neural Tangent Kernel (NTK)]]</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>[[2021-10-02-NTK#Why is this interesting?</td>
+          <td>Conclusion]]</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+</ol>
+
+<h4 id="introduction">
+<a class="anchor" href="#introduction" aria-hidden="true"><span class="octicon octicon-link"></span></a>Introduction</h4>
+<p>Much of the research on deep learning theory over the past few years addresses the common theme of analyzing neural networks in the <strong>infinite-width</strong> limit. At first, this limit may seem impractical and even pointless to study. However, it turns out that neural networks in this regime simplify to <strong>linear models</strong> with a kernel called the <strong>neural tangent kernel</strong>. These results are significant as they give a way of understanding why neural networks converge to a optimal solution. Gradient descent is therefore very simple to study, leads to a <strong>proof of convergence of gradient descent</strong> to 0 training loss. Neural networks are know to be highly non-convex objects and so understanding their convergence under training is highly non-trivial.</p>
+
+<p>In the post, we will do a deep dive into the motivation and definition of NTK and how it can be used to explain the evolution of neural networks during training via gradient descent.</p>
+
+<h4 id="motivation">
+<a class="anchor" href="#motivation" aria-hidden="true"><span class="octicon octicon-link"></span></a>Motivation</h4>
+<p>Following the popularization of deep learning beginning in the late 2010s, a series of papers were published where it was shown that overparametrized neural networks could converge linearly to zero training loss <strong>with their parameters hardly varying</strong>.<sup id="fnref:2" role="doc-noteref"><a href="#fn:2" class="footnote" rel="footnote">1</a></sup> This culminated in a a 2020 paper titled “On Lazy Training in Differentiable Programming,” where the authors coin the phrase lazy training, which corresponds to the model behaving like its linearization around the initialization.<sup id="fnref:3" role="doc-noteref"><a href="#fn:3" class="footnote" rel="footnote">2</a></sup> This can be proven quantitatively, by looking at the <em>relative change</em> in the norm of the weight vector from initialization:</p>
+
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mfrac><msub><mrow><mo fence="true">∥</mo><mi>w</mi><mo stretchy="false">(</mo><mi>n</mi><mo stretchy="false">)</mo><mo>−</mo><msub><mi>w</mi><mn>0</mn></msub><mo fence="true">∥</mo></mrow><mn>2</mn></msub><msub><mrow><mo fence="true">∥</mo><msub><mi>w</mi><mn>0</mn></msub><mo fence="true">∥</mo></mrow><mn>2</mn></msub></mfrac></mrow><annotation encoding="application/x-tex">\frac{\left \| w(n)-w_0 \right \|_2}{\left \| w_0 \right \|_2}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:2.4254000000000002em;vertical-align:-0.9857em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.4397000000000002em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="minner"><span class="minner"><span class="mopen delimcenter" style="top:0em;">∥</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.02691em;">w</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.02691em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose delimcenter" style="top:0em;">∥</span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151408em;"><span style="top:-2.4003em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.29969999999999997em;"><span></span></span></span></span></span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.6897em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="minner"><span class="minner"><span class="mopen delimcenter" style="top:0em;">∥</span><span class="mord mathdefault" style="margin-right:0.02691em;">w</span><span class="mopen">(</span><span class="mord mathdefault">n</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.02691em;">w</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.02691em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose delimcenter" style="top:0em;">∥</span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151408em;"><span style="top:-2.4003em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.29969999999999997em;"><span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.9857em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></span>
+
+<p>Lets look at a simple 2-hidden layer ReLU network, with varying widths. 
+![[nltk_weight.png]]</p>
+
+<p>As we can see from the results above, training loss goes to zero for all networks, yet for the widest network, the weights barely move! It appears the approximation is a <strong>linear model in the weights</strong>. Does that mean that minimizing the least squares loss reduces to just doing <strong>linear regression</strong>?</p>
+
+<p>Well no, since the model function is still <strong>non-linear in the input</strong>, because finding the gradient of the model is definitely not a linear operation. In fact, this is just a linear model using a <strong>feature map</strong> $\phi(x)$ which is the gradient vector at initialization. This feature map naturally <em>induces a kernel</em> on the input, which is called the <strong>neural tangent kernel (NTK)</strong>.</p>
+
+<h4 id="what-is-a-kernel">
+<a class="anchor" href="#what-is-a-kernel" aria-hidden="true"><span class="octicon octicon-link"></span></a>What is a Kernel?</h4>
+<p>A kernel is essentially a similarity function between two data points. It describes how sensitive the prediction for one data sample is to the prediction for the other; or in other words, how similar two data points are. Depending on the problem structure, some kernels can be decomposed into two feature maps, one corresponding to one data point, and the kernel value is an inner product of these two features:
+<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>K</mi><mo stretchy="false">(</mo><mi>x</mi><mo separator="true">,</mo><msup><mi>x</mi><mo mathvariant="normal" lspace="0em" rspace="0em">′</mo></msup><mo stretchy="false">)</mo><mo>=</mo><mrow><mo fence="true">⟨</mo><mi>ϕ</mi><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo><mo separator="true">,</mo><mi>ϕ</mi><mo stretchy="false">(</mo><msup><mi>x</mi><mo mathvariant="normal" lspace="0em" rspace="0em">′</mo></msup><mo stretchy="false">)</mo><mo fence="true">⟩</mo></mrow></mrow><annotation encoding="application/x-tex">K(x, x') = \left \langle  \phi(x), \phi(x')\right \rangle</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.001892em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.07153em;">K</span><span class="mopen">(</span><span class="mord mathdefault">x</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault">x</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.751892em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′</span></span></span></span></span></span></span></span></span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1.001892em;vertical-align:-0.25em;"></span><span class="minner"><span class="mopen delimcenter" style="top:0em;">⟨</span><span class="mord mathdefault">ϕ</span><span class="mopen">(</span><span class="mord mathdefault">x</span><span class="mclose">)</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathdefault">ϕ</span><span class="mopen">(</span><span class="mord"><span class="mord mathdefault">x</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.751892em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">′</span></span></span></span></span></span></span></span></span><span class="mclose">)</span><span class="mclose delimcenter" style="top:0em;">⟩</span></span></span></span></span>
+<em>Kernel methods</em> are a type of non-parametric, instance-based machine learning algorithms.</p>
+
+<h4 id="a-simple-illustration">
+<a class="anchor" href="#a-simple-illustration" aria-hidden="true"><span class="octicon octicon-link"></span></a>A Simple Illustration</h4>
+<p>Consider a linear function $f(x, \theta) = \theta_{1}x + \theta_2$. Like in the case of a neural network, we will initialize our parameters $\theta$s. We will then conduct a forward pass, calculate the loss function, and then propagate backwards in order to adjust our parameters $\theta$. Since our function $f$ is not parametrized  as lookup tables of individual function values, changes our $\theta s$ based on a single training iteration will change the parameters for all of our observations.</p>
+
+<blockquote>
+  <p>This is why the neural tangent kernel is useful; at its core, it explains how updating the model parameters on one data sample affects the predictions for other samples.</p>
+</blockquote>
+
+<h4 id="theoretical-justification-for-linear-approximation">
+<a class="anchor" href="#theoretical-justification-for-linear-approximation" aria-hidden="true"><span class="octicon octicon-link"></span></a>Theoretical Justification for Linear Approximation?</h4>
+<p>The linearized model is great for analysis, only if it’s actually an accurate approximation of the non-linear model. Chizat and Bach<sup id="fnref:4" role="doc-noteref"><a href="#fn:4" class="footnote" rel="footnote">3</a></sup> defined the condition where the local approximation applies, leading to the kernel regime:</p>
+
+<p><span class="katex-error" title="ParseError: KaTeX parse error: \tag works only in display equations" style="color:#cc0000">\left \| y(w_0) - \bar{y} \right \| \frac{\left \| \bigtriangledown_w^2 y(w_0) \right \|}{\left \| \bigtriangledown _w y(w_0) \right \|^2} \ll 1
+\tag{1}</span>
+In words, if the Hessian divided by the squared norm of the gradient is less than 1, the gradient dynamics track very closley with gradient dynamics on a kernel machine. Put another way, if the condition above holds, it means that is little to no movement in the weights as there is no negative curvature. So how much the Hessian changes is very small relative to how much the gradient is changing. This is key, as we only change parameters slightly (if at all) and achieve a large change in predictions. This means that we obtain a linear behavior in a small region around initialization.<sup id="fnref:5" role="doc-noteref"><a href="#fn:5" class="footnote" rel="footnote">4</a></sup></p>
+
+<p>Based on this equation, a key condition can be summarized as follows: the amount of change in $w$ to produce a change of <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo fence="true">∥</mo><mi>y</mi><mo stretchy="false">(</mo><msub><mi>w</mi><mn>0</mn></msub><mo stretchy="false">)</mo><mo>−</mo><mover accent="true"><mi>y</mi><mo>ˉ</mo></mover><mo fence="true">∥</mo></mrow><annotation encoding="application/x-tex">\left \| y(w_0) - \bar{y} \right \|</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="minner"><span class="mopen delimcenter" style="top:0em;">∥</span><span class="mord mathdefault" style="margin-right:0.03588em;">y</span><span class="mopen">(</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.02691em;">w</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.02691em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mord accent"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.56778em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">y</span></span></span><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.19444em;">ˉ</span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.19444em;"><span></span></span></span></span></span><span class="mclose delimcenter" style="top:0em;">∥</span></span></span></span></span> in $y$ causes a negligible change in the Jacobian $\bigtriangledown _w y(w_0)$.  What is key now is to understand how the quantity in (1) which we will now represent as $k(w_0)$ changes with the hidden width $m$ of our network.</p>
+
+<p>Well, it turns out based on the research<sup id="fnref:1" role="doc-noteref"><a href="#fn:1" class="footnote" rel="footnote">5</a></sup> that $k \rightarrow 0$ as $m \rightarrow \infty$ . This means that the model is very <strong>close to its linear approximation</strong>.</p>
+
+<p>An intuitive explanation for why this happens is as follows: a large width means that there are a lot more neurons affecting the output. A small change in all of these neuron weights can result in a very large change in the output, so the neurons need to move very little to fit the data. If the weights move less, the linear approximation is more accurate. As the width increases, this amount of neuron budging decreases, so the model gets closer to its linear approximation.</p>
+
+<h4 id="neural-tangent-kernel-ntk">
+<a class="anchor" href="#neural-tangent-kernel-ntk" aria-hidden="true"><span class="octicon octicon-link"></span></a>Neural Tangent Kernel (NTK)</h4>
+
+<p>So if the model is close to its linear approximation, ($k(w_{0})\ll 1$), the Jacobian of the model outputs does not change as training progresses. This means that $\bigtriangledown y(w(t)) \approx \bigtriangledown y(w_0)$. This is referred to as the <strong>kernel regime</strong>, because the tangent kernel stays constant during training. The training dynamics now reduces to a very simple <strong>linear ordinary differential equation</strong>: $\bigtriangledown y(w) = -H(w_{0})(y(w)- \bar{y})$ where $H$ is the NTK $\bigtriangledown y(w)^{T}\bigtriangledown y(w)$ .  Lets try and derive it step by step.</p>
+
+<p>Our loss function can be represented as:
+<span class="katex-error" title="ParseError: KaTeX parse error: \tag works only in display equations" style="color:#cc0000">L(\theta) = \frac{1}{N}\sum_{i=1}^{N} l(f(x^{i}, \theta);y^i)
+\tag{2}</span>
+And its using the chain rule the gradient can be represented as 
+<span class="katex-error" title="ParseError: KaTeX parse error: \tag works only in display equations" style="color:#cc0000">\bigtriangledown_\theta L(\theta) = \frac{1}{N} \sum_{i=1}^{N} \bigtriangledown_{\theta}f(x^{i};\theta) \bigtriangledown_{f}l(f, y^i)
+\tag{3}</span>
+Where the size of the first gradient term is $P$x$n_L$ where $P$ is the number of parameters in the network and $n_L$ is the number of layers. The size of the second gradient term is of size $n_L$x$1$.</p>
+
+<p>If we take the learning rate to be infinitesimally small, we can look at the evolution of the weight vectors over <strong>time</strong>, and write down this differential equation: 
+<span class="katex-error" title="ParseError: KaTeX parse error: \tag works only in display equations" style="color:#cc0000">\frac{\mathrm{d\theta} }{\mathrm{d} t} = -\bigtriangledown_\theta L(\theta)
+\tag{4}</span>
+This is called a <em>gradient flow</em>. In essence, it is a continuous time equivalent of standard gradient descent. The main point is that the trajectory of gradient descent in parameter space closely approximates the trajectory of the solution of this differential equation if the learning rate is small enough. Again this is because when tracking how the network parameter $\theta$ evolves in time, each gradient descent update introduces a small incremental change of an infinitesimal step size.</p>
+
+<p>Now we can express how the network output evolves over time according to the derivative:
+<span class="katex-error" title="ParseError: KaTeX parse error: \tag works only in display equations" style="color:#cc0000">\frac{\mathrm{df(x;\theta)} }{\mathrm{d} t} = \frac{\mathrm{df(x;\theta)} }{\mathrm{d} \theta} \frac{\mathrm{d\theta} }{\mathrm{d} t}  = 
+-\frac{1}{N} \sum_{i=1}^{N} {\color{Red} \bigtriangledown_{\theta}f(x;\theta)^{T} \bigtriangledown_{\theta}f(x^i;\theta)}
+\bigtriangledown_{f}l(f, y^i)
+\tag{5}</span>
+Where the <mark style="background: #FF5582A6;">red</mark> component in (5) is the NTK, $K(x, x’; \theta) = \bigtriangledown_{\theta}f(x;\theta)^{T} \bigtriangledown_{\theta}f(x’;\theta)$. This means that the feature map of one input $x$ is $\phi(x) = \bigtriangledown_{\theta}f(x;\theta)$.  This is because the NTK matrix corresponding to this feature map is obtained by taking <strong>pairwise inner products</strong> between the feature maps of all the data points.</p>
+
+<p>Further, since our model is <strong>over-parameterized</strong>, the NTK matrix is always <em>positive definite</em>. By performing a spectral decomposition on the positive definite NTK, we can decouple the trajectory of the gradient flow into independent 1-d components (the eigenvectors) that decay at a rate proportional to the corresponding eigenvalue. The key thing is that they all <strong>decay</strong> (because all eigenvalues are positive), which means that the gradient flow <strong>always converges</strong> to the equilibrium where train loss is 0.</p>
+
+<h4 id="why-is-this-interesting">
+<a class="anchor" href="#why-is-this-interesting" aria-hidden="true"><span class="octicon octicon-link"></span></a>Why is this interesting?</h4>
+<p>It turns out the neural tangent kernel becomes particularly useful when studying learning dynamics in infinitely wide feed-forward neural networks. Why? Because in this limit, two things happen:</p>
+
+<ol>
+  <li>First: if we initialize $\theta_0$ randomly from appropriately chosen distributions, the initial NTK of the network $k_{\theta_0}$ approaches a deterministic kernel as the width increases. This means, that at initialization, $k_{\theta_0}$ doesn’t really depend on $\theta_0$ but is a fixed kernel independent of the specific initialization.</li>
+  <li>Second: in the infinite limit the kernel $k_{\theta_0}$ stays constant over time as we optimize $\theta_0$. This removes the parameter dependence during training.</li>
+</ol>
+
+<p>Further reading:</p>
+<ol>
+  <li>https://rajatvd.github.io/NTK/</li>
+  <li>https://lilianweng.github.io/posts/2022-09-08-ntk/</li>
+</ol>
+
+<div class="footnotes" role="doc-endnotes">
+  <ol>
+    <li id="fn:2" role="doc-endnote">
+      <p>Simon S. Du, Xiyu Zhai, Barnabás Póczos, and Aarti Singh. Gradient descent provably optimizes over-parameterized neural networks. In International Conference on Learning Representations, 2019; Simon S. Du, Lee Jason D., Li Haochuan, Wang Liwei, and Zhai Xiyu. Gradient descent finds global minima of deep neural networks. In International Conference on Machine Learning (ICML), 2019; Zeyuan Allen-Zhu, Yuanzhi Li, and Zhao Song. A convergence theory for deep learning via over-parameterization. In Proceedings of the 36th International Conference on Machine Learning, volume 97, pages 242–252, 2019; Yuanzhi Li and Yingyu Liang. Learning overparameterized neural networks via stochastic gradient descent on structured data. In Advances in Neural Information Processing Systems, pages 8167–8176, 2018. <a href="#fnref:2" class="reversefootnote" role="doc-backlink">↩</a></p>
+    </li>
+    <li id="fn:3" role="doc-endnote">
+      <p>Chizat, Lenaic, and Francis Bach. “<a href="https://arxiv.org/abs/1812.07956">A note on lazy training in supervised differentiable programming.</a>” arXiv preprint arXiv:1812.07956 (2018). <a href="#fnref:3" class="reversefootnote" role="doc-backlink">↩</a></p>
+    </li>
+    <li id="fn:4" role="doc-endnote">
+      <p>Lenaic Chizat, &amp; Francis Bach. (2018). On the Global Convergence of Gradient Descent for Over-parameterized Models using Optimal Transport. <a href="#fnref:4" class="reversefootnote" role="doc-backlink">↩</a></p>
+    </li>
+    <li id="fn:5" role="doc-endnote">
+      <p>https://www.youtube.com/watch?v=l0im8AJAMco <a href="#fnref:5" class="reversefootnote" role="doc-backlink">↩</a></p>
+    </li>
+    <li id="fn:1" role="doc-endnote">
+      <p>Jacot, Arthur, Franck Gabriel, and Clément Hongler. “<a href="https://arxiv.org/abs/1806.07572">Neural tangent kernel: Convergence and generalization in neural networks.</a>” Advances in neural information processing systems. 2018; -   Chizat, Lenaic, and Francis Bach. “<a href="https://arxiv.org/abs/1812.07956">A note on lazy training in supervised differentiable programming.</a>” arXiv preprint arXiv:1812.07956 (2018); -   Arora, Sanjeev, et al. “<a href="https://arxiv.org/abs/1904.11955">On exact computation with an infinitely wide neural net.</a>” arXiv preprint arXiv:1904.11955 (2019); -   Li, Zhiyuan, et al. “<a href="https://arxiv.org/abs/1911.00809">Enhanced Convolutional Neural Tangent Kernels.</a>” arXiv preprint arXiv:1911.00809 (2019); Lee &amp; Xiao, et al. <a href="https://arxiv.org/abs/1902.06720">“Wide Neural Networks of Any Depth Evolve as Linear Models Under Gradient Descent.”</a> NeuriPS 2019. <a href="#fnref:1" class="reversefootnote" role="doc-backlink">↩</a></p>
+    </li>
+  </ol>
+</div>
+
+  </div><a class="u-url" href="/My-DS-Blog/2021/10/02/NTK.html" hidden></a>
+</article>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/My-DS-Blog/"></data>
+
+  <div class="wrapper">
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col">
+        <p class="feed-subscribe">
+          <a href="https://jackhmiller.github.io/My-DS-Blog/feed.xml">
+            <svg class="svg-icon orange">
+              <use xlink:href="/My-DS-Blog/assets/minima-social-icons.svg#rss"></use>
+            </svg><span>Subscribe</span>
+          </a>
+        </p>
+      </div>
+      <div class="footer-col">
+        <p>050-709-2944 | Jack.harris.miller@gmail.com</p>
+      </div>
+    </div>
+
+    <div class="social-links"><ul class="social-media-list"><li>
+  <a rel="me" href="https://github.com/jackhmiller" target="_blank" title="github">
+    <svg class="svg-icon grey">
+      <use xlink:href="/My-DS-Blog/assets/minima-social-icons.svg#github"></use>
+    </svg>
+  </a>
+</li>
+</ul>
+</div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>

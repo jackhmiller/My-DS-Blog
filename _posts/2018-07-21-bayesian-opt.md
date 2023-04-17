@@ -26,6 +26,7 @@ The implementation of these methods is simple; for each proposed hyperparameter 
 $$
 x^* = \underset{x \in\chi }{argmin} \; f(x) 
 $$
+
 Here we are minimizing the score of our evaluation functon evaluation over the validation set. $x^*$ is the set of hyperparameters that yields the lowest value of the score. 
 
 The last step is to train a new model on the entire dataset (training and validation) under the best hyperparameter setting.
@@ -42,8 +43,7 @@ Hyperparameter_tuning (training_data, validation_data, hp_list):
   return (best_hp_setting, best_m)
 ```
 
-> [!Note]
-Grid and random search are naive yet comprehensive. However, their computational time increases exponentially with a growing parameter space. They also don't utilize search results from previous iterations. 
+> Grid and random search are naive yet comprehensive. However, their computational time increases exponentially with a growing parameter space. They also don't utilize search results from previous iterations. 
 
 ## Introducing Bayesian hyperparameter optimization
 Hyperparameter optimization has proven to be one of the most successful applications of Bayesian  optimization (BO). While BO is an area of research decades old, it has seen a resurgence that coincides with the resurgence in neural networks granted new life by modern computation: the extreme cost of training these models demands efficient routines for hyperparameter tuning.
@@ -63,7 +63,6 @@ Proposing sampling points in the search space is done by acquisition functions. 
 
 Our ultimate goal is to collapse the uncertainty surrounding the posterior mean of our model parameters in order to identify the best set of parameters. This is depicted in the figure[^3] below, where we reduce the blue-shaded area that represents our uncertainty regarding our parameterized model performance by repeatedly sampling and subsequently evaluating our surrogate models (dashed colored lines represented as Gaussian processes), and finally adjusting our surrogate models. (The mean of the Gaussian process represented as the solid blue line gives the approximate response)
 
-![[Pasted image 20230417082607.png]]
 ![]({{ site.baseurl }}/images/ci_collapse.png "Prior and Posterior")
 Each time we observe our function at a new point, this posterior distribution is updated.
 
@@ -141,6 +140,7 @@ l(x) & if \; y < y^*\\
 g(x) & if \; y \geq y^*
 \end{matrix}\right.
 $$
+
 The explanation of this equation is that we make _two different distributions for the hyperparameters_: one where the value of the objective function is less than a threshold $y^*$, $l(x)$, and one where the value of the objective function is greater than the threshold $y^*$, $g(x)$. In other words, we split the observations in two groups: the best performing one (e.g. the upper quartile) and the rest, defining $y^*$ as the splitting value for the two groups (often represented as a quantile). 
 
 After constructing two probability distributions for the number of estimators, we model the likelihood probability for being in each of these groups (Gaussian processes to model the posterior probability). Ultimately we want to draw values of x from _l(x)_ and not from _g(x)_ because this distribution is based only on values of x that yielded lower scores than the threshold. Interestingly, Bergstra et al. show that the expected improvement is proportional to $\frac{l(x)}{g(x)}$, so we should seek to maximize this ratio. 
@@ -159,7 +159,11 @@ The two densities _l_ and _g_ are modeled using Parzen estimators (also know
 
 ![]({{ site.baseurl }}/images/gmm_tpe.png "GMM TPE")
 
-To see how likely a new point is under our mixed distribution, we compute the mixture probability density at a given point $x_i$ as follows: $[PDF_1(x_{i)}+ PDF_2(x_{i})+ PDF_3(x_i)]/(\text{number of kernels})$.
+To see how likely a new point is under our mixed distribution, we compute the mixture probability density at a given point $x_i$ as follows: 
+
+$$
+[PDF_1(x_{i)}+ PDF_2(x_{i})+ PDF_3(x_i)]/(\text{number of kernels})
+$$.
 
 #### Implementation
 Lets use this function for our objective function:

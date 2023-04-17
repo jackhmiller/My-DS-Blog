@@ -123,25 +123,25 @@ SMBO algorithms differ in what criterion they optimize to obtain $x^*$ given a s
 The EI acquisition function that we will optimize to choose the next experiment can be represented as follows:
 
 $$
-EI_y(x) = \int_{-\infty}^{\infty } max(y^*-y, 0)p(y|x)dy
+EI_y(x) = \int_{-\infty}^{\infty } max(y^{*}-y, 0)p(y|x)dy
 $$
 
-Here $x$ is our set of hyperparameters, $y^*$ is our target performance/value of the best sample so far, and $y$ is our loss. We want the $p(y < y^*)$, which we will define using a quantile search result to achieve the following:
+Here $x$ is our set of hyperparameters, $y^{*}$ is our target performance/value of the best sample so far, and $y$ is our loss. We want the $p(y < y^{*})$, which we will define using a quantile search result to achieve the following:
 
 $$
 \int_{-\infty}^{y^*}p(y)dy
 $$
 
-Most other surrogate models like Random Forest Regressions and Gaussian-processes represent $p(y|x)$ like in the EI equation above, where $y$ is the value on the response surface, i.e. the validation loss, and $x$ is the hyper-parameter. However, TPE calculates $p(x|y)$ which is the probability of the hyperparameters given the score on the objective function. This is done by replacing the distribution of the configuration prior with non-parametric densities. The TPE defines $p(x|y)$ using the following two densities:
+Most other surrogate models like Random Forest Regressions and Gaussian-processes represent $ p(y|x) $ like in the EI equation above, where $y$ is the value on the response surface, i.e. the validation loss, and $x$ is the hyper-parameter. However, TPE calculates $p(x|y)$ which is the probability of the hyperparameters given the score on the objective function. This is done by replacing the distribution of the configuration prior with non-parametric densities. The TPE defines $p(x|y)$ using the following two densities:
 
 $$
 p(x|y) = \left\{\begin{matrix}
-l(x) & if \; y < y^*\\ 
-g(x) & if \; y \geq y^*
-\end{matrix}\right.
+l(x) & if \; y < y^{*}\\ 
+g(x) & if \; y \geq y^{*}
+\end{matrix}\right
 $$
 
-The explanation of this equation is that we make _two different distributions for the hyperparameters_: one where the value of the objective function is less than a threshold $y^*$, $l(x)$, and one where the value of the objective function is greater than the threshold $y^*$, $g(x)$. In other words, we split the observations in two groups: the best performing one (e.g. the upper quartile) and the rest, defining $y^*$ as the splitting value for the two groups (often represented as a quantile). 
+The explanation of this equation is that we make _two different distributions for the hyperparameters_: one where the value of the objective function is less than a threshold $y^{*}$, $l(x)$, and one where the value of the objective function is greater than the threshold $y^{*}$, $g(x)$. In other words, we split the observations in two groups: the best performing one (e.g. the upper quartile) and the rest, defining $y^*$ as the splitting value for the two groups (often represented as a quantile). 
 
 After constructing two probability distributions for the number of estimators, we model the likelihood probability for being in each of these groups (Gaussian processes to model the posterior probability). Ultimately we want to draw values of x from _l(x)_ and not from _g(x)_ because this distribution is based only on values of x that yielded lower scores than the threshold. Interestingly, Bergstra et al. show that the expected improvement is proportional to $\frac{l(x)}{g(x)}$, so we should seek to maximize this ratio. 
 

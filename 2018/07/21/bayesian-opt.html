@@ -180,6 +180,7 @@ You may be wondering what’s “Bayesian” about Bayesian Optimization if we�
 <p>Our ultimate goal is to collapse the uncertainty surrounding the posterior mean of our model parameters in order to identify the best set of parameters. This is depicted in the figure<sup id="fnref:3" role="doc-noteref"><a href="#fn:3" class="footnote" rel="footnote">2</a></sup> below, where we reduce the blue-shaded area that represents our uncertainty regarding our parameterized model performance by repeatedly sampling and subsequently evaluating our surrogate models (dashed colored lines represented as Gaussian processes), and finally adjusting our surrogate models. (The mean of the Gaussian process represented as the solid blue line gives the approximate response)</p>
 
 <p>![[Pasted image 20230417082607.png]]
+<img src="/My-DS-Blog/images/ci_collapse.png" alt="" title="Prior and Posterior">
 Each time we observe our function at a new point, this posterior distribution is updated.</p>
 
 <h4 id="sequential-model-based-global-optimization-smbo">
@@ -276,7 +277,7 @@ The explanation of this equation is that we make <em>two different distribution
 <a class="anchor" href="#a-bit-more-on-tpes" aria-hidden="true"><span class="octicon octicon-link"></span></a>A bit more on TPEs</h4>
 <p>The two densities <em>l</em> and <em>g</em> are modeled using Parzen estimators (also known as kernel density estimators) which are a simple average of kernels centered on existing data points. In other words, we approximate our PDF by a mixture of continuous distributions. This is useful since we assume that there is some unknown but nonzero density around the near neighborhood of $x_i$ points and we use kernels $k$ to account for it. The more points is in some neighborhood, the more density is accumulated around this region and so, the higher the overall density of our function. For example, below<sup id="fnref:6" role="doc-noteref"><a href="#fn:6" class="footnote" rel="footnote">4</a></sup> we have a density displayed via the blue line which could represent $l$ or $g$, and three observations with Gaussian kernels centered on each.</p>
 
-<p>![[gmm_tpe.png]]</p>
+<p><img src="/My-DS-Blog/images/gmm_tpe.png" alt="" title="GMM TPE"></p>
 
 <p>To see how likely a new point is under our mixed distribution, we compute the mixture probability density at a given point $x_i$ as follows: $[PDF_1(x_{i)}+ PDF_2(x_{i})+ PDF_3(x_i)]/(\text{number of kernels})$.</p>
 
@@ -288,7 +289,7 @@ The explanation of this equation is that we make <em>two different distribution
 
 <p>The following plot shows the noise-free objective function, the amount of noise by plotting a large number of samples and the two initial samples.</p>
 
-<p>![[bo_objective.png]]</p>
+<p><img src="/My-DS-Blog/images/bo_objective.png" alt="" title="Our distribution with 2 samples"></p>
 
 <p>We are trying to find the global maximum at the left peak, via the fewest number of steps. Now we will implement the acquisition function defined as the expected improvement function above.</p>
 
@@ -318,13 +319,14 @@ The explanation of this equation is that we make <em>two different distribution
 </code></pre></div></div>
 
 <p>Now we are ready to run our experiment:
-![[bo_results.png]]
-Bayesian optimization runs for 10 iterations. In each iteration, a row with two plots is produced. The left plot shows the noise-free objective function, the surrogate function which is the GP posterior predictive mean, the 95% confidence interval of the mean and the noisy samples obtained from the objective function so far. The right plot shows the acquisition function. The vertical dashed line in both plots shows the proposed sampling point for the next iteration which corresponds to the maximum of the acquisition function.</p>
+<img src="/My-DS-Blog/images/bo_results.png" alt="" title="Results per iteration"></p>
+
+<p>Bayesian optimization runs for 10 iterations. In each iteration, a row with two plots is produced. The left plot shows the noise-free objective function, the surrogate function which is the GP posterior predictive mean, the 95% confidence interval of the mean and the noisy samples obtained from the objective function so far. The right plot shows the acquisition function. The vertical dashed line in both plots shows the proposed sampling point for the next iteration which corresponds to the maximum of the acquisition function.</p>
 
 <p>Note how the two initial samples initially drive search into the direction of the local maximum on the right side but exploration allows the algorithm to escape from that local optimum and find the global optimum on the left side. Also note how sampling point proposals often fall within regions of high uncertainty (exploration) and are not only driven by the highest surrogate function values (exploitation).</p>
 
 <p>A convergence plot reveals how many iterations are needed the find a maximum and if the sampling point proposals stay around that maximum i.e. converge to small proposal differences between consecutive steps.
-![[bo_convergence.png]]</p>
+<img src="/My-DS-Blog/images/bo_convergence.png" alt="" title="Iterations vs convergence behavior"></p>
 
 <blockquote>
   <p>[!danger]

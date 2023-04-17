@@ -64,6 +64,7 @@ Proposing sampling points in the search space is done by acquisition functions. 
 Our ultimate goal is to collapse the uncertainty surrounding the posterior mean of our model parameters in order to identify the best set of parameters. This is depicted in the figure[^3] below, where we reduce the blue-shaded area that represents our uncertainty regarding our parameterized model performance by repeatedly sampling and subsequently evaluating our surrogate models (dashed colored lines represented as Gaussian processes), and finally adjusting our surrogate models. (The mean of the Gaussian process represented as the solid blue line gives the approximate response)
 
 ![[Pasted image 20230417082607.png]]
+![]({{ site.baseurl }}/images/ci_collapse.png "Prior and Posterior")
 Each time we observe our function at a new point, this posterior distribution is updated.
 
 #### Sequential model-based global optimization (SMBO)
@@ -156,7 +157,7 @@ If the surrogate function is correct, then these hyperparameters should yield a 
 The two densities _l_ and _g_ are modeled using Parzen estimators (also known as kernel density estimators) which are a simple average of kernels centered on existing data points. In other words, we approximate our PDF by a mixture of continuous distributions. This is useful since we assume that there is some unknown but nonzero density around the near neighborhood of $x_i$ points and we use kernels $k$ to account for it. The more points is in some neighborhood, the more density is accumulated around this region and so, the higher the overall density of our function. For example, below[^6] we have a density displayed via the blue line which could represent $l$ or $g$, and three observations with Gaussian kernels centered on each. 
 
 
-![[gmm_tpe.png]]
+![]({{ site.baseurl }}/images/gmm_tpe.png "GMM TPE")
 
 To see how likely a new point is under our mixed distribution, we compute the mixture probability density at a given point $x_i$ as follows: $[PDF_1(x_{i)}+ PDF_2(x_{i})+ PDF_3(x_i)]/(\text{number of kernels})$.
 
@@ -169,7 +170,8 @@ $$
 
 The following plot shows the noise-free objective function, the amount of noise by plotting a large number of samples and the two initial samples.
 
-![[bo_objective.png]]
+![]({{ site.baseurl }}/images/bo_objective.png "Our distribution with 2 samples")
+
 
 We are trying to find the global maximum at the left peak, via the fewest number of steps. Now we will implement the acquisition function defined as the expected improvement function above.
 
@@ -200,13 +202,15 @@ def min_obj(X):
 ```
 
 Now we are ready to run our experiment:
-![[bo_results.png]]
+![]({{ site.baseurl }}/images/bo_results.png "Results per iteration")
+
 Bayesian optimization runs for 10 iterations. In each iteration, a row with two plots is produced. The left plot shows the noise-free objective function, the surrogate function which is the GP posterior predictive mean, the 95% confidence interval of the mean and the noisy samples obtained from the objective function so far. The right plot shows the acquisition function. The vertical dashed line in both plots shows the proposed sampling point for the next iteration which corresponds to the maximum of the acquisition function.
 
 Note how the two initial samples initially drive search into the direction of the local maximum on the right side but exploration allows the algorithm to escape from that local optimum and find the global optimum on the left side. Also note how sampling point proposals often fall within regions of high uncertainty (exploration) and are not only driven by the highest surrogate function values (exploitation).
 
 A convergence plot reveals how many iterations are needed the find a maximum and if the sampling point proposals stay around that maximum i.e. converge to small proposal differences between consecutive steps.
-![[bo_convergence.png]]
+![]({{ site.baseurl }}/images/bo_convergence.png "Iterations vs convergence behavior")
+
 
 >[!danger]
 >Bayesian optimization is efficient in tuning few hyper-parameters but its efficiency degrades a lot when the search dimension increases too much, up to a point where it is on par with random search.

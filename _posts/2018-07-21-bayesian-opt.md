@@ -138,7 +138,7 @@ $$
 p(x|y) = \left\{\begin{matrix}
 l(x) & if \; y < y^{*}\\ 
 g(x) & if \; y \geq y^{*}
-\end{matrix}\right
+\end{matrix}\right.
 $$
 
 The explanation of this equation is that we make _two different distributions for the hyperparameters_: one where the value of the objective function is less than a threshold $y^{*}$, $l(x)$, and one where the value of the objective function is greater than the threshold $y^{*}$, $g(x)$. In other words, we split the observations in two groups: the best performing one (e.g. the upper quartile) and the rest, defining $y^*$ as the splitting value for the two groups (often represented as a quantile). 

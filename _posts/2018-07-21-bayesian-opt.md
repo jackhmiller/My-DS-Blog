@@ -136,8 +136,8 @@ Most other surrogate models like Random Forest Regressions and Gaussian-processe
 
 $$
 p(x|y) = \left\{\begin{matrix}
-l(x) & if \; y < y^{*}\\ 
-g(x) & if \; y \geq y^{*}
+l(x) & if \; y < y^*\\ 
+g(x) & if \; y \geq y^*
 \end{matrix}\right.
 $$
 

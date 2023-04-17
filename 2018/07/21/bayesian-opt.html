@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="twitter:card" content="summary_large_image" /><!-- Begin Jekyll SEO tag v2.6.1 -->
+<title>Bayesian Optimization | Concept Drift</title>
+<meta name="generator" content="Jekyll v4.1.1" />
+<meta property="og:title" content="Bayesian Optimization" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="What are hyperparameters? All machine learning models have a set of hyperparameters or arguments that must be specified by the practitioner. These are values that must be specified outside of the training procedure. Vanilla linear regression doesn’t have any hyperparameters. But variants of linear regression do. Ridge and Lasso Regression both add a regularization term to linear regression; the weight for the regularization term is called the regularization parameter. Decision trees have hyperparameters such as the desired depth and number of leaves in the tree. Support Vector Machines require setting a misclassification penalty term. Kernelized SVM require setting kernel parameters like the width for RBF kernels." />
+<meta property="og:description" content="What are hyperparameters? All machine learning models have a set of hyperparameters or arguments that must be specified by the practitioner. These are values that must be specified outside of the training procedure. Vanilla linear regression doesn’t have any hyperparameters. But variants of linear regression do. Ridge and Lasso Regression both add a regularization term to linear regression; the weight for the regularization term is called the regularization parameter. Decision trees have hyperparameters such as the desired depth and number of leaves in the tree. Support Vector Machines require setting a misclassification penalty term. Kernelized SVM require setting kernel parameters like the width for RBF kernels." />
+<link rel="canonical" href="https://jackhmiller.github.io/My-DS-Blog/2018/07/21/bayesian-opt.html" />
+<meta property="og:url" content="https://jackhmiller.github.io/My-DS-Blog/2018/07/21/bayesian-opt.html" />
+<meta property="og:site_name" content="Concept Drift" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2018-07-21T00:00:00-05:00" />
+<script type="application/ld+json">
+{"url":"https://jackhmiller.github.io/My-DS-Blog/2018/07/21/bayesian-opt.html","@type":"BlogPosting","headline":"Bayesian Optimization","dateModified":"2018-07-21T00:00:00-05:00","datePublished":"2018-07-21T00:00:00-05:00","mainEntityOfPage":{"@type":"WebPage","@id":"https://jackhmiller.github.io/My-DS-Blog/2018/07/21/bayesian-opt.html"},"description":"What are hyperparameters? All machine learning models have a set of hyperparameters or arguments that must be specified by the practitioner. These are values that must be specified outside of the training procedure. Vanilla linear regression doesn’t have any hyperparameters. But variants of linear regression do. Ridge and Lasso Regression both add a regularization term to linear regression; the weight for the regularization term is called the regularization parameter. Decision trees have hyperparameters such as the desired depth and number of leaves in the tree. Support Vector Machines require setting a misclassification penalty term. Kernelized SVM require setting kernel parameters like the width for RBF kernels.","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/My-DS-Blog/assets/css/style.css"><link type="application/atom+xml" rel="alternate" href="https://jackhmiller.github.io/My-DS-Blog/feed.xml" title="Concept Drift" /><link rel="shortcut icon" type="image/x-icon" href="/My-DS-Blog/images/nn_JFc_icon.ico">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Primer/15.2.0/primer.css" integrity="sha512-xTz2ys4coGAOz8vuV1NcQBkgVmKhsSEtjbqyMJbBHRplFuvKIUo6xhLHpAyPt9mfR6twHJgn9OgVLuqOvjeBhg==" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.14.0/css/all.min.css" integrity="sha512-1PKOgIY59xJ8Co8+NE6FZ+LOAZKjy+KY8iq0G4B3CyeY6wYHN3yt9PW0XpSriVlkMXe40PTKnXrLnZ9+fkDaog==" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.12.0/katex.min.css" integrity="sha512-h7nl+xz8wgDlNM4NqKEM4F1NkIRS17M9+uJwIGwuo8vGqIl4BhuCKdxjWEINm+xyrUjNCnK5dCrhM0sj+wTIXw==" crossorigin="anonymous" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.12.0/katex.min.js" integrity="sha512-/CMIhXiDA3m2c9kzRyd97MTb3MC6OVnx4TElQ7fkkoRghwDf6gi41gaT1PwF270W6+J60uTmwgeRpNpJdRV6sg==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.12.0/contrib/auto-render.min.js" integrity="sha512-Do7uJAaHZm5OLrIv/yN4w0iG1dbu01kzdMNnFfu/mAqgUk6Nniv2JYHcwH+cNwjqgLcqcuBBk+JRvprLVI8azg==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha512-0doc9hKxR3PYwso42RD1p5ySZpzzuDiOwMrdCEh2WdJZCjcmFKc/wEnL+z8fBQrnHoiNWbo+3fiGkOYXBdQp4A==" crossorigin="anonymous"></script>
+    <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement( document.body, {
+        delimiters: [
+            {left: "$$", right: "$$", display: true},
+            {left: "[%", right: "%]", display: true},
+            {left: "$", right: "$", display: false}
+        ]}
+        );
+    });
+    </script>
+
+
+<script>
+function wrap_img(fn) {
+    if (document.attachEvent ? document.readyState === "complete" : document.readyState !== "loading") {
+        var elements = document.querySelectorAll(".post img");
+        Array.prototype.forEach.call(elements, function(el, i) {
+            if (el.getAttribute("title") && (el.className != "emoji")) {
+                const caption = document.createElement('figcaption');
+                var node = document.createTextNode(el.getAttribute("title"));
+                caption.appendChild(node);
+                const wrapper = document.createElement('figure');
+                wrapper.className = 'image';
+                el.parentNode.insertBefore(wrapper, el);
+                el.parentNode.removeChild(el);
+                wrapper.appendChild(el);
+                wrapper.appendChild(caption);
+            }
+        });
+    } else { document.addEventListener('DOMContentLoaded', fn); }
+}
+window.onload = wrap_img;
+</script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function(){
+    // add link icon to anchor tags
+    var elem = document.querySelectorAll(".anchor-link")
+    elem.forEach(e => (e.innerHTML = '<i class="fas fa-link fa-xs"></i>'));
+    });
+</script>
+</head>
+<body><header class="site-header">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/My-DS-Blog/">Concept Drift</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/My-DS-Blog/CV/">My CV</a><a class="page-link" href="/My-DS-Blog/about/">About Me</a><a class="page-link" href="/My-DS-Blog/search/">Search</a><a class="page-link" href="/My-DS-Blog/categories/">Tags</a></div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">Bayesian Optimization</h1><p class="post-meta post-meta-title"><time class="dt-published" datetime="2018-07-21T00:00:00-05:00" itemprop="datePublished">
+        Jul 21, 2018
+      </time>
+       • <span class="read-time" title="Estimated read time">
+    
+    
+      13 min read
+    
+</span></p>
+
+    
+
+    </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <ul class="section-nav">
+<li class="toc-entry toc-h3"><a href="#what-are-hyperparameters">What are hyperparameters?</a></li>
+<li class="toc-entry toc-h3"><a href="#back-box-optimization">Back-box optimization</a></li>
+<li class="toc-entry toc-h3"><a href="#naive-approaches-for-hyperparameter-optimization">Naive approaches for hyperparameter optimization</a></li>
+<li class="toc-entry toc-h2"><a href="#introducing-bayesian-hyperparameter-optimization">Introducing Bayesian hyperparameter optimization</a>
+<ul>
+<li class="toc-entry toc-h4"><a href="#big-picture">Big picture</a></li>
+<li class="toc-entry toc-h4"><a href="#theory">Theory</a></li>
+<li class="toc-entry toc-h4"><a href="#sequential-model-based-global-optimization-smbo">Sequential model-based global optimization (SMBO)</a></li>
+<li class="toc-entry toc-h4"><a href="#a-probabilistic-surrogate-model">A probabilistic surrogate model</a></li>
+<li class="toc-entry toc-h4"><a href="#a-bit-more-on-tpes">A bit more on TPEs</a></li>
+<li class="toc-entry toc-h4"><a href="#implementation">Implementation</a></li>
+</ul>
+</li>
+</ul><h3 id="what-are-hyperparameters">
+<a class="anchor" href="#what-are-hyperparameters" aria-hidden="true"><span class="octicon octicon-link"></span></a>What are hyperparameters?</h3>
+<p>All machine learning models have a set of hyperparameters or arguments that must be specified by the practitioner. These are values that must be specified outside of the training procedure. Vanilla linear regression doesn’t have any hyperparameters. But variants of linear regression do. Ridge and Lasso Regression both add a regularization term to linear regression; the weight for the regularization term is called the regularization parameter. Decision trees have hyperparameters such as the desired depth and number of leaves in the tree. Support Vector Machines require setting a misclassification penalty term. Kernelized SVM require setting kernel parameters like the width for RBF kernels.</p>
+
+<p>These types of hyperparameter control the capacity of the model, i.e., how flexible the model is, how many degrees of freedom it has in fitting the data. Proper control of model capacity can prevent overfitting, which happens when the model is too flexible, and the training process adapts too much to the training data, thereby losing predictive accuracy on new test data. So a proper setting of the hyperparameters is important.</p>
+
+<p>Another type of hyperparameters comes from the training process itself. For instance, stochastic gradient descent optimization requires a learning rate or a learning schedule. Some optimization methods require a convergence threshold. Random forests and boosted decision trees require knowing the number of total trees. (Though this could also be classified as a type of regularization hyperparameter.) These also need to be set to reasonable values in order for the training process to find a good model.</p>
+
+<h3 id="back-box-optimization">
+<a class="anchor" href="#back-box-optimization" aria-hidden="true"><span class="octicon octicon-link"></span></a>Back-box optimization</h3>
+<p>Conceptually, hyperparameter tuning is an optimization task, just like model training. However, these two tasks are quite different in practice. When training a model, the quality of a proposed set of model parameters can be written as a loss function. Hyperparameter tuning is a meta-optimization task. Since the training process doesn’t set the hyperparameters, there needs to be a meta process that tunes the hyperparameters. It is a process commonly referred to as <em>black-box optimization</em>, meaning that we want to minimize a function $f(\theta)$ but we only get to query values rather than directly computing gradients. This is why hyperparameter tuning is harder- the quality of those hyperparameters cannot be written down in a closed-form formula, because it depends on the outcome of a blackbox (the model training process). This is why hyperparameter tuning is much harder.</p>
+
+<h3 id="naive-approaches-for-hyperparameter-optimization">
+<a class="anchor" href="#naive-approaches-for-hyperparameter-optimization" aria-hidden="true"><span class="octicon octicon-link"></span></a>Naive approaches for hyperparameter optimization</h3>
+<p>Up until a few years ago, the only available methods were grid search and random search. Grid search evaluates each possible combination, and returns the best configuration based on a loss function. Unlike grid search, a key distinction with Random search is that we do not specify a set of possible values for every hyperparameter. Instead, we sample values from a statistical distribution for each hyperparameter. A sampling distribution is defined for every hyperparameter to do a random search. In fact, in a 2012 paper Bergstra and Bengio proved that in many instances random search performs as well as grid search.<sup id="fnref:2" role="doc-noteref"><a href="#fn:2" class="footnote" rel="footnote">1</a></sup></p>
+
+<p>The implementation of these methods is simple; for each proposed hyperparameter setting, the inner model training process comes up with a model for the dataset and outputs evaluation results on hold-out or cross validation datasets. After evaluating a number of hyperparameter settings, the hyperparameter tuner outputs the setting that yields the best performing model. Formally this can be represented as</p>
+
+<p><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>x</mi><mo>∗</mo></msup><mo>=</mo><mi><munder><mo><mi>a</mi><mi>r</mi><mi>g</mi><mi>m</mi><mi>i</mi><mi>n</mi></mo><mrow><mi>x</mi><mo>∈</mo><mi>χ</mi></mrow></munder></mi><mtext>  </mtext><mi>f</mi><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">x^* = \underset{x \in\chi }{argmin} \; f(x)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.688696em;vertical-align:0em;"></span><span class="mord"><span class="mord mathdefault">x</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.688696em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mbin mtight">∗</span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1.780548em;vertical-align:-1.030548em;"></span><span class="mord"><span class="mop op-limits"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.65952em;"><span style="top:-2.20556em;margin-left:0em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">x</span><span class="mrel mtight">∈</span><span class="mord mathdefault mtight">χ</span></span></span></span><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span><span class="mop"><span class="mord mathdefault">a</span><span class="mord mathdefault" style="margin-right:0.02778em;">r</span><span class="mord mathdefault" style="margin-right:0.03588em;">g</span><span class="mord mathdefault">min</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.030548em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mord mathdefault" style="margin-right:0.10764em;">f</span><span class="mopen">(</span><span class="mord mathdefault">x</span><span class="mclose">)</span></span></span></span>
+Here we are minimizing the score of our evaluation functon evaluation over the validation set. $x^*$ is the set of hyperparameters that yields the lowest value of the score.</p>
+
+<p>The last step is to train a new model on the entire dataset (training and validation) under the best hyperparameter setting.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Hyperparameter_tuning (training_data, validation_data, hp_list):  
+  hp_perf = []  
+  foreach hp_setting in hp_list:  
+    m = train_model(training_data, hp_setting)  
+    validation_results = eval_model(m, validation_data)  
+    hp_perf.append(validation_results)  
+  best_hp_setting = hp_list[max_index(hp_perf)]  
+  best_m = train_model(training_data.append(validation_data), best_hp_setting)  
+  return (best_hp_setting, best_m)
+</code></pre></div></div>
+
+<blockquote>
+  <p>[!Note]
+Grid and random search are naive yet comprehensive. However, their computational time increases exponentially with a growing parameter space. They also don’t utilize search results from previous iterations.</p>
+</blockquote>
+
+<h2 id="introducing-bayesian-hyperparameter-optimization">
+<a class="anchor" href="#introducing-bayesian-hyperparameter-optimization" aria-hidden="true"><span class="octicon octicon-link"></span></a>Introducing Bayesian hyperparameter optimization</h2>
+<p>Hyperparameter optimization has proven to be one of the most successful applications of Bayesian  optimization (BO). While BO is an area of research decades old, it has seen a resurgence that coincides with the resurgence in neural networks granted new life by modern computation: the extreme cost of training these models demands efficient routines for hyperparameter tuning.</p>
+
+<p>BO will allow us to answer the question; Given a set of observations of hyperparameter performance, how do we select where to observe the function next?</p>
+
+<h4 id="big-picture">
+<a class="anchor" href="#big-picture" aria-hidden="true"><span class="octicon octicon-link"></span></a>Big picture</h4>
+<p>At a high-level, BO methods are efficient because they choose the next hyperparameters in an <em>informed manner</em><strong>.</strong> The basic idea is: <strong>spend a little more time selecting the next hyperparameters in order to make fewer calls to the objective function.</strong> In practice, the time spent selecting the next hyperparameters is inconsequential compared to the time spent in the objective function. By evaluating hyperparameters that appear more promising from past results, Bayesian methods can find better model settings than random search in fewer iterations.</p>
+
+<h4 id="theory">
+<a class="anchor" href="#theory" aria-hidden="true"><span class="octicon octicon-link"></span></a>Theory</h4>
+<p>BO consists of two main components: a surrogate model for modeling the objective function, and an acquisition function for deciding where to sample next. We use a surrogate for the objective function so that we can both make predictions and maintain a level of uncertainty over those predictions via a posterior probability distribution.</p>
+
+<p>Proposing sampling points in the search space is done by acquisition functions. They trade off exploitation and exploration. Exploitation means sampling where the surrogate model predicts a high objective and exploration means sampling at locations where the prediction uncertainty is high. Both correspond to high acquisition function values and the goal is to maximize the acquisition function to determine the next sampling point.</p>
+
+<blockquote>
+  <p>[!faq] What is Bayesian about this? 
+You may be wondering what’s “Bayesian” about Bayesian Optimization if we’re just optimizing an acquisition functions. Well, at every step we maintain a model describing our estimates and uncertainty at each point, which we update according to Bayes’ rule at each step, <strong>conditioning</strong> our model on a limited set of previous function evaluations</p>
+</blockquote>
+
+<p>Our ultimate goal is to collapse the uncertainty surrounding the posterior mean of our model parameters in order to identify the best set of parameters. This is depicted in the figure<sup id="fnref:3" role="doc-noteref"><a href="#fn:3" class="footnote" rel="footnote">2</a></sup> below, where we reduce the blue-shaded area that represents our uncertainty regarding our parameterized model performance by repeatedly sampling and subsequently evaluating our surrogate models (dashed colored lines represented as Gaussian processes), and finally adjusting our surrogate models. (The mean of the Gaussian process represented as the solid blue line gives the approximate response)</p>
+
+<p>![[Pasted image 20230417082607.png]]
+Each time we observe our function at a new point, this posterior distribution is updated.</p>
+
+<h4 id="sequential-model-based-global-optimization-smbo">
+<a class="anchor" href="#sequential-model-based-global-optimization-smbo" aria-hidden="true"><span class="octicon octicon-link"></span></a>Sequential model-based global optimization (SMBO)</h4>
+<p>In an application where the true function $f: \chi \rightarrow \mathbb{R}$ is costly to evaluate, model-based algorithms approximate $f$ with a surrogate that is cheaper. The point $x^*$ (in our case a set of hyperparameters) that maximizes the surrogate model becomes the proposal for where the true function should be evaluated.</p>
+
+<blockquote>
+  <p>[!info]
+SMBO iterates between fitting models and using them to make choices about which configurations to investigate. It offers the appealing prospects of interpolating performance between observed parameter settings and of extrapolating to previously unseen regions of parameter space. It can also be used to quantify importance of each parameter and parameter interactions.</p>
+</blockquote>
+
+<p>The psuedo-code for how SMBO algorithms model $f$ via observational history $\mathcal{H}$ is as follows:</p>
+
+<pre><code class="language-pseudo">\begin{algorithm}
+\caption{SMBO}
+\begin{algorithmic} 
+\PROCEDURE{SMBO}{$f, M, T, S$}
+\STATE $ \mathcal{H}\leftarrow \phi $
+\FOR{$t \leftarrow 1 \; to \; T$}
+\STATE $ x^* \leftarrow  \underset{x}{argmin} \; S(x, M_{t-1}) $
+\STATE $\text{EVALUATE} \; f(x^*) $
+\STATE $\mathcal{H}\leftarrow \mathcal{H} \cup (x^*, f(x^*))$
+\STATE $\text{ fit a new model} \; M_t \; \text{to} \; \mathcal{H}$
+\ENDFOR
+\RETURN $\mathcal{H}$
+\ENDPROCEDURE
+\end{algorithmic}
+\end{algorithm}
+</code></pre>
+
+<h4 id="a-probabilistic-surrogate-model">
+<a class="anchor" href="#a-probabilistic-surrogate-model" aria-hidden="true"><span class="octicon octicon-link"></span></a>A probabilistic surrogate model</h4>
+<p>SMBO algorithms differ in what criterion they optimize to obtain $x^*$ given a surrogate of $f$. The novel work of Bergstra et al. proposed creating a probabilistic surrogate model of $f$ by modeling a hierarchical Gaussian process, and use expected improvement (EI) as the acquisition function. In their case, they implement EI via a tree-structed Parzen estimator (TPE).<sup id="fnref:4" role="doc-noteref"><a href="#fn:4" class="footnote" rel="footnote">3</a></sup> The processes can be written as follows:</p>
+
+<pre><code class="language-pseudo">\begin{algorithm}
+\caption{BO}
+\begin{algorithmic} 
+\PROCEDURE{BO}{$f, n, T$}
+\STATE $\text{Place a Gaussian process prior on objective function} \; f$
+\STATE $\text{Observe} \; f \; \text{at} \; n \; \text{points according to an initial space-filling experimental design}$
+\FOR{$t \leftarrow 1 \; to \; T$}
+\STATE $\text{Update the posterior probability distribution of} \; f \; \text{using all available data}$
+\STATE $\text{Calculate the maximizer of the acquisition function to find the next sampling point}$
+\STATE $x_t^* = \underset{x}{argmax} \; Acquisition(x|\mathcal{D}_{1:t-1})$
+\STATE $\text{Pass the parameters to the objective function to obtain a sample}$
+\STATE $y_t= f(x_t^*)$
+\STATE $\text{Add sample to previous samples}$
+\STATE $\mathcal{D}_{1:t} = \mathcal{D}_{1:t-1}, (x_{t} ,y_t)$
+\ENDFOR
+\RETURN $\mathcal{H} \vdash \; \underset{\mathcal{H}}{argmin} \; y$
+\ENDPROCEDURE
+\end{algorithmic}
+\end{algorithm}
+</code></pre>
+
+<p>The EI acquisition function that we will optimize to choose the next experiment can be represented as follows:</p>
+
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>E</mi><msub><mi>I</mi><mi>y</mi></msub><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo><mo>=</mo><msubsup><mo>∫</mo><mrow><mo>−</mo><mi mathvariant="normal">∞</mi></mrow><mi mathvariant="normal">∞</mi></msubsup><mi>m</mi><mi>a</mi><mi>x</mi><mo stretchy="false">(</mo><msup><mi>y</mi><mo>∗</mo></msup><mo>−</mo><mi>y</mi><mo separator="true">,</mo><mn>0</mn><mo stretchy="false">)</mo><mi>p</mi><mo stretchy="false">(</mo><mi>y</mi><mi mathvariant="normal">∣</mi><mi>x</mi><mo stretchy="false">)</mo><mi>d</mi><mi>y</mi></mrow><annotation encoding="application/x-tex">EI_y(x) = \int_{-\infty}^{\infty } max(y^*-y, 0)p(y|x)dy</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.036108em;vertical-align:-0.286108em;"></span><span class="mord mathdefault" style="margin-right:0.05764em;">E</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.07847em;">I</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.15139200000000003em;"><span style="top:-2.5500000000000003em;margin-left:-0.07847em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight" style="margin-right:0.03588em;">y</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathdefault">x</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:2.384573em;vertical-align:-0.970281em;"></span><span class="mop"><span class="mop op-symbol large-op" style="margin-right:0.44445em;position:relative;top:-0.0011249999999999316em;">∫</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.414292em;"><span style="top:-1.7880500000000001em;margin-left:-0.44445em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">−</span><span class="mord mtight">∞</span></span></span></span><span style="top:-3.8129000000000004em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">∞</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.970281em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathdefault">m</span><span class="mord mathdefault">a</span><span class="mord mathdefault">x</span><span class="mopen">(</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">y</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.738696em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mbin mtight">∗</span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.03588em;">y</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord">0</span><span class="mclose">)</span><span class="mord mathdefault">p</span><span class="mopen">(</span><span class="mord mathdefault" style="margin-right:0.03588em;">y</span><span class="mord">∣</span><span class="mord mathdefault">x</span><span class="mclose">)</span><span class="mord mathdefault">d</span><span class="mord mathdefault" style="margin-right:0.03588em;">y</span></span></span></span></span>
+
+<p>Here $x$ is our set of hyperparameters, $y^<em>$ is our target performance/value of the best sample so far, and $y$ is our loss. We want the $p(y &lt; y^</em>)$, which we will define using a quantile search result to achieve the following:</p>
+
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mo>∫</mo><mrow><mo>−</mo><mi mathvariant="normal">∞</mi></mrow><msup><mi>y</mi><mo>∗</mo></msup></msubsup><mi>p</mi><mo stretchy="false">(</mo><mi>y</mi><mo stretchy="false">)</mo><mi>d</mi><mi>y</mi></mrow><annotation encoding="application/x-tex">\int_{-\infty}^{y^*}p(y)dy</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:2.617521em;vertical-align:-0.970281em;"></span><span class="mop"><span class="mop op-symbol large-op" style="margin-right:0.44445em;position:relative;top:-0.0011249999999999316em;">∫</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.64724em;"><span style="top:-1.7880500000000001em;margin-left:-0.44445em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">−</span><span class="mord mtight">∞</span></span></span></span><span style="top:-3.8129000000000004em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight"><span class="mord mathdefault mtight" style="margin-right:0.03588em;">y</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.7633428571428571em;"><span style="top:-2.931em;margin-right:0.07142857142857144em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mbin mtight">∗</span></span></span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.970281em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathdefault">p</span><span class="mopen">(</span><span class="mord mathdefault" style="margin-right:0.03588em;">y</span><span class="mclose">)</span><span class="mord mathdefault">d</span><span class="mord mathdefault" style="margin-right:0.03588em;">y</span></span></span></span></span>
+
+<table>
+  <tbody>
+    <tr>
+      <td>Most other surrogate models like Random Forest Regressions and Gaussian-processes represent $p(y</td>
+      <td>x)$ like in the EI equation above, where $y$ is the value on the response surface, i.e. the validation loss, and $x$ is the hyper-parameter. However, TPE calculates $p(x</td>
+      <td>y)$ which is the probability of the hyperparameters given the score on the objective function. This is done by replacing the distribution of the configuration prior with non-parametric densities. The TPE defines $p(x</td>
+      <td>y)$ using the following two densities:</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mo stretchy="false">(</mo><mi>x</mi><mi mathvariant="normal">∣</mi><mi>y</mi><mo stretchy="false">)</mo><mo>=</mo><mrow><mo fence="true">{</mo><mtable rowspacing="0.15999999999999992em" columnspacing="1em"><mtr><mtd><mstyle scriptlevel="0" displaystyle="false"><mrow><mi>l</mi><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="false"><mrow><mi>i</mi><mi>f</mi><mtext>  </mtext><mi>y</mi><mo>&lt;</mo><msup><mi>y</mi><mo>∗</mo></msup></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="false"><mrow><mi>g</mi><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="false"><mrow><mi>i</mi><mi>f</mi><mtext>  </mtext><mi>y</mi><mo>≥</mo><msup><mi>y</mi><mo>∗</mo></msup></mrow></mstyle></mtd></mtr></mtable></mrow></mrow><annotation encoding="application/x-tex">p(x|y) = \left\{\begin{matrix}
+l(x) &amp; if \; y &lt; y^*\\ 
+g(x) &amp; if \; y \geq y^*
+\end{matrix}\right.</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault">p</span><span class="mopen">(</span><span class="mord mathdefault">x</span><span class="mord">∣</span><span class="mord mathdefault" style="margin-right:0.03588em;">y</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:2.40003em;vertical-align:-0.95003em;"></span><span class="minner"><span class="mopen delimcenter" style="top:0em;"><span class="delimsizing size3">{</span></span><span class="mord"><span class="mtable"><span class="col-align-c"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.45em;"><span style="top:-3.61em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.01968em;">l</span><span class="mopen">(</span><span class="mord mathdefault">x</span><span class="mclose">)</span></span></span><span style="top:-2.4099999999999997em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">g</span><span class="mopen">(</span><span class="mord mathdefault">x</span><span class="mclose">)</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.9500000000000004em;"><span></span></span></span></span></span><span class="arraycolsep" style="width:0.5em;"></span><span class="arraycolsep" style="width:0.5em;"></span><span class="col-align-c"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.45em;"><span style="top:-3.61em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathdefault">i</span><span class="mord mathdefault" style="margin-right:0.10764em;">f</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mord mathdefault" style="margin-right:0.03588em;">y</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">&lt;</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">y</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.688696em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mbin mtight">∗</span></span></span></span></span></span></span></span></span></span><span style="top:-2.4099999999999997em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathdefault">i</span><span class="mord mathdefault" style="margin-right:0.10764em;">f</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mord mathdefault" style="margin-right:0.03588em;">y</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">≥</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.03588em;">y</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.688696em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mbin mtight">∗</span></span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.9500000000000004em;"><span></span></span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span>
+The explanation of this equation is that we make <em>two different distributions for the hyperparameters</em>: one where the value of the objective function is less than a threshold $y^<em>$, $l(x)$, and one where the value of the objective function is greater than the threshold $y^</em>$, $g(x)$. In other words, we split the observations in two groups: the best performing one (e.g. the upper quartile) and the rest, defining $y^*$ as the splitting value for the two groups (often represented as a quantile).</p>
+
+<p>After constructing two probability distributions for the number of estimators, we model the likelihood probability for being in each of these groups (Gaussian processes to model the posterior probability). Ultimately we want to draw values of x from <em>l(x)</em> and not from <em>g(x)</em> because this distribution is based only on values of x that yielded lower scores than the threshold. Interestingly, Bergstra et al. show that the expected improvement is proportional to $\frac{l(x)}{g(x)}$, so we should seek to maximize this ratio.</p>
+
+<p>Putting the above together, our surrogate modeling process looks like the following:</p>
+<ol>
+  <li>Draw sample hyperparameters form $l(x)$</li>
+  <li>Evaluate the hyperparameters in terms of $\frac{l(x)}{g(x)}$</li>
+  <li>Return the set of hyperparameters that yields the highest value under $\frac{l(x)}{g(x)}$</li>
+  <li>Evaluate these hyperparameters via the objective function</li>
+</ol>
+
+<p>If the surrogate function is correct, then these hyperparameters should yield a better value when evaluated.</p>
+
+<h4 id="a-bit-more-on-tpes">
+<a class="anchor" href="#a-bit-more-on-tpes" aria-hidden="true"><span class="octicon octicon-link"></span></a>A bit more on TPEs</h4>
+<p>The two densities <em>l</em> and <em>g</em> are modeled using Parzen estimators (also known as kernel density estimators) which are a simple average of kernels centered on existing data points. In other words, we approximate our PDF by a mixture of continuous distributions. This is useful since we assume that there is some unknown but nonzero density around the near neighborhood of $x_i$ points and we use kernels $k$ to account for it. The more points is in some neighborhood, the more density is accumulated around this region and so, the higher the overall density of our function. For example, below<sup id="fnref:6" role="doc-noteref"><a href="#fn:6" class="footnote" rel="footnote">4</a></sup> we have a density displayed via the blue line which could represent $l$ or $g$, and three observations with Gaussian kernels centered on each.</p>
+
+<p>![[gmm_tpe.png]]</p>
+
+<p>To see how likely a new point is under our mixed distribution, we compute the mixture probability density at a given point $x_i$ as follows: $[PDF_1(x_{i)}+ PDF_2(x_{i})+ PDF_3(x_i)]/(\text{number of kernels})$.</p>
+
+<h4 id="implementation">
+<a class="anchor" href="#implementation" aria-hidden="true"><span class="octicon octicon-link"></span></a>Implementation</h4>
+<p>Lets use this function for our objective function:</p>
+
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo><mo>=</mo><mo>−</mo><mi>s</mi><mi>i</mi><mi>n</mi><mo stretchy="false">(</mo><mn>3</mn><mi>x</mi><mo stretchy="false">)</mo><mo>−</mo><msup><mi>x</mi><mn>2</mn></msup><mo>+</mo><mn>0.7</mn><mi>x</mi><mo>+</mo><mi>ϵ</mi></mrow><annotation encoding="application/x-tex">f(x) = -sin(3x) - x^2 + 0.7x + \epsilon</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.10764em;">f</span><span class="mopen">(</span><span class="mord mathdefault">x</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">−</span><span class="mord mathdefault">s</span><span class="mord mathdefault">i</span><span class="mord mathdefault">n</span><span class="mopen">(</span><span class="mord">3</span><span class="mord mathdefault">x</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.9474379999999999em;vertical-align:-0.08333em;"></span><span class="mord"><span class="mord mathdefault">x</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8641079999999999em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.72777em;vertical-align:-0.08333em;"></span><span class="mord">0</span><span class="mord">.</span><span class="mord">7</span><span class="mord mathdefault">x</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.43056em;vertical-align:0em;"></span><span class="mord mathdefault">ϵ</span></span></span></span></span>
+
+<p>The following plot shows the noise-free objective function, the amount of noise by plotting a large number of samples and the two initial samples.</p>
+
+<p>![[bo_objective.png]]</p>
+
+<p>We are trying to find the global maximum at the left peak, via the fewest number of steps. Now we will implement the acquisition function defined as the expected improvement function above.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">ei_acquisition</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">X_sample</span><span class="p">,</span> <span class="n">Y_sample</span><span class="p">,</span> <span class="n">gauss</span><span class="p">,</span> <span class="n">xi</span><span class="o">=</span><span class="mf">0.01</span><span class="p">):</span>
+    <span class="s">"""
+    Expected improvement at points X using Gaussian surrogate model
+    """</span>
+    <span class="n">mu</span><span class="p">,</span> <span class="n">sigma</span> <span class="o">=</span> <span class="n">gauss</span><span class="p">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">return_std</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">mu_sample</span> <span class="o">=</span> <span class="n">gauss</span><span class="p">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X_sample</span><span class="p">)</span>
+    
+    <span class="n">sigma</span> <span class="o">=</span> <span class="n">sigma</span><span class="p">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    
+    <span class="n">mu_sample_opt</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="nb">max</span><span class="p">(</span><span class="n">mu_sample</span><span class="p">)</span>
+    
+    <span class="k">with</span> <span class="n">np</span><span class="p">.</span><span class="n">errstate</span><span class="p">(</span><span class="n">divide</span><span class="o">=</span><span class="s">'warn'</span><span class="p">):</span>
+        <span class="n">imp</span> <span class="o">=</span> <span class="n">mu</span> <span class="o">-</span> <span class="n">mu_sample_opt</span> <span class="o">-</span> <span class="n">xi</span>
+        <span class="n">Z</span> <span class="o">=</span> <span class="n">imp</span> <span class="o">/</span> <span class="n">sigma</span>
+        <span class="n">ei</span> <span class="o">=</span> <span class="n">imp</span> <span class="o">*</span> <span class="n">norm</span><span class="p">.</span><span class="n">cdf</span><span class="p">(</span><span class="n">Z</span><span class="p">)</span> <span class="o">+</span> <span class="n">sigma</span> <span class="o">*</span> <span class="n">norm</span><span class="p">.</span><span class="n">pdf</span><span class="p">(</span><span class="n">Z</span><span class="p">)</span>
+        <span class="n">ei</span><span class="p">[</span><span class="n">sigma</span> <span class="o">==</span> <span class="mf">0.0</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+    <span class="k">return</span> <span class="n">ei</span>
+
+
+<span class="k">def</span> <span class="nf">min_obj</span><span class="p">(</span><span class="n">X</span><span class="p">):</span>
+    <span class="c1"># Minimization objective is the negative acquisition function
+</span>    <span class="k">return</span> <span class="o">-</span><span class="n">ei_acquisition</span><span class="p">(</span><span class="n">X</span><span class="p">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">dim</span><span class="p">),</span> <span class="n">X_sample</span><span class="p">,</span> <span class="n">Y_sample</span><span class="p">,</span> <span class="n">gauss</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>Now we are ready to run our experiment:
+![[bo_results.png]]
+Bayesian optimization runs for 10 iterations. In each iteration, a row with two plots is produced. The left plot shows the noise-free objective function, the surrogate function which is the GP posterior predictive mean, the 95% confidence interval of the mean and the noisy samples obtained from the objective function so far. The right plot shows the acquisition function. The vertical dashed line in both plots shows the proposed sampling point for the next iteration which corresponds to the maximum of the acquisition function.</p>
+
+<p>Note how the two initial samples initially drive search into the direction of the local maximum on the right side but exploration allows the algorithm to escape from that local optimum and find the global optimum on the left side. Also note how sampling point proposals often fall within regions of high uncertainty (exploration) and are not only driven by the highest surrogate function values (exploitation).</p>
+
+<p>A convergence plot reveals how many iterations are needed the find a maximum and if the sampling point proposals stay around that maximum i.e. converge to small proposal differences between consecutive steps.
+![[bo_convergence.png]]</p>
+
+<blockquote>
+  <p>[!danger]
+Bayesian optimization is efficient in tuning few hyper-parameters but its efficiency degrades a lot when the search dimension increases too much, up to a point where it is on par with random search.</p>
+</blockquote>
+
+<div class="footnotes" role="doc-endnotes">
+  <ol>
+    <li id="fn:2" role="doc-endnote">
+      <p>Bergstra, James &amp; Bengio, Y.. (2012). Random Search for Hyper-Parameter Optimization. The Journal of Machine Learning Research. 13. 281-305. <a href="#fnref:2" class="reversefootnote" role="doc-backlink">↩</a></p>
+    </li>
+    <li id="fn:3" role="doc-endnote">
+      <p>Rasmussen &amp; Williams, Gaussian Processes for Machine Learning, MIT Press 2006. <a href="#fnref:3" class="reversefootnote" role="doc-backlink">↩</a></p>
+    </li>
+    <li id="fn:4" role="doc-endnote">
+      <p>James Bergstra, Rémi Bardenet, Yoshua Bengio, and Balázs Kégl. 2011. Algorithms for hyper-parameter optimization. In Proceedings of the 24th International Conference on Neural Information Processing Systems (NIPS’11): 2546–2554. <a href="#fnref:4" class="reversefootnote" role="doc-backlink">↩</a></p>
+    </li>
+    <li id="fn:6" role="doc-endnote">
+      <p>https://www.youtube.com/watch?v=bcy6A57jAwI&amp;t=620s <a href="#fnref:6" class="reversefootnote" role="doc-backlink">↩</a></p>
+    </li>
+  </ol>
+</div>
+
+  </div><a class="u-url" href="/My-DS-Blog/2018/07/21/bayesian-opt.html" hidden></a>
+</article>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/My-DS-Blog/"></data>
+
+  <div class="wrapper">
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col">
+        <p class="feed-subscribe">
+          <a href="https://jackhmiller.github.io/My-DS-Blog/feed.xml">
+            <svg class="svg-icon orange">
+              <use xlink:href="/My-DS-Blog/assets/minima-social-icons.svg#rss"></use>
+            </svg><span>Subscribe</span>
+          </a>
+        </p>
+      </div>
+      <div class="footer-col">
+        <p>050-709-2944 | Jack.harris.miller@gmail.com</p>
+      </div>
+    </div>
+
+    <div class="social-links"><ul class="social-media-list"><li>
+  <a rel="me" href="https://github.com/jackhmiller" target="_blank" title="github">
+    <svg class="svg-icon grey">
+      <use xlink:href="/My-DS-Blog/assets/minima-social-icons.svg#github"></use>
+    </svg>
+  </a>
+</li>
+</ul>
+</div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>

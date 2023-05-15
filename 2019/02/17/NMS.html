@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="twitter:card" content="summary_large_image" /><!-- Begin Jekyll SEO tag v2.6.1 -->
+<title>Non-Max Suppression | Concept Drift</title>
+<meta name="generator" content="Jekyll v4.1.1" />
+<meta property="og:title" content="Non-Max Suppression" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Introducing NMS" />
+<meta property="og:description" content="Introducing NMS" />
+<link rel="canonical" href="https://jackhmiller.github.io/My-DS-Blog/2019/02/17/NMS.html" />
+<meta property="og:url" content="https://jackhmiller.github.io/My-DS-Blog/2019/02/17/NMS.html" />
+<meta property="og:site_name" content="Concept Drift" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2019-02-17T00:00:00-06:00" />
+<script type="application/ld+json">
+{"url":"https://jackhmiller.github.io/My-DS-Blog/2019/02/17/NMS.html","@type":"BlogPosting","headline":"Non-Max Suppression","dateModified":"2019-02-17T00:00:00-06:00","datePublished":"2019-02-17T00:00:00-06:00","mainEntityOfPage":{"@type":"WebPage","@id":"https://jackhmiller.github.io/My-DS-Blog/2019/02/17/NMS.html"},"description":"Introducing NMS","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/My-DS-Blog/assets/css/style.css"><link type="application/atom+xml" rel="alternate" href="https://jackhmiller.github.io/My-DS-Blog/feed.xml" title="Concept Drift" /><link rel="shortcut icon" type="image/x-icon" href="/My-DS-Blog/images/nn_JFc_icon.ico">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Primer/15.2.0/primer.css" integrity="sha512-xTz2ys4coGAOz8vuV1NcQBkgVmKhsSEtjbqyMJbBHRplFuvKIUo6xhLHpAyPt9mfR6twHJgn9OgVLuqOvjeBhg==" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.14.0/css/all.min.css" integrity="sha512-1PKOgIY59xJ8Co8+NE6FZ+LOAZKjy+KY8iq0G4B3CyeY6wYHN3yt9PW0XpSriVlkMXe40PTKnXrLnZ9+fkDaog==" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.12.0/katex.min.css" integrity="sha512-h7nl+xz8wgDlNM4NqKEM4F1NkIRS17M9+uJwIGwuo8vGqIl4BhuCKdxjWEINm+xyrUjNCnK5dCrhM0sj+wTIXw==" crossorigin="anonymous" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.12.0/katex.min.js" integrity="sha512-/CMIhXiDA3m2c9kzRyd97MTb3MC6OVnx4TElQ7fkkoRghwDf6gi41gaT1PwF270W6+J60uTmwgeRpNpJdRV6sg==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.12.0/contrib/auto-render.min.js" integrity="sha512-Do7uJAaHZm5OLrIv/yN4w0iG1dbu01kzdMNnFfu/mAqgUk6Nniv2JYHcwH+cNwjqgLcqcuBBk+JRvprLVI8azg==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha512-0doc9hKxR3PYwso42RD1p5ySZpzzuDiOwMrdCEh2WdJZCjcmFKc/wEnL+z8fBQrnHoiNWbo+3fiGkOYXBdQp4A==" crossorigin="anonymous"></script>
+    <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement( document.body, {
+        delimiters: [
+            {left: "$$", right: "$$", display: true},
+            {left: "[%", right: "%]", display: true},
+            {left: "$", right: "$", display: false}
+        ]}
+        );
+    });
+    </script>
+
+
+<script>
+function wrap_img(fn) {
+    if (document.attachEvent ? document.readyState === "complete" : document.readyState !== "loading") {
+        var elements = document.querySelectorAll(".post img");
+        Array.prototype.forEach.call(elements, function(el, i) {
+            if (el.getAttribute("title") && (el.className != "emoji")) {
+                const caption = document.createElement('figcaption');
+                var node = document.createTextNode(el.getAttribute("title"));
+                caption.appendChild(node);
+                const wrapper = document.createElement('figure');
+                wrapper.className = 'image';
+                el.parentNode.insertBefore(wrapper, el);
+                el.parentNode.removeChild(el);
+                wrapper.appendChild(el);
+                wrapper.appendChild(caption);
+            }
+        });
+    } else { document.addEventListener('DOMContentLoaded', fn); }
+}
+window.onload = wrap_img;
+</script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function(){
+    // add link icon to anchor tags
+    var elem = document.querySelectorAll(".anchor-link")
+    elem.forEach(e => (e.innerHTML = '<i class="fas fa-link fa-xs"></i>'));
+    });
+</script>
+</head>
+<body><header class="site-header">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/My-DS-Blog/">Concept Drift</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/My-DS-Blog/CV/">My CV</a><a class="page-link" href="/My-DS-Blog/about/">About Me</a><a class="page-link" href="/My-DS-Blog/search/">Search</a><a class="page-link" href="/My-DS-Blog/categories/">Tags</a></div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">Non-Max Suppression</h1><p class="post-meta post-meta-title"><time class="dt-published" datetime="2019-02-17T00:00:00-06:00" itemprop="datePublished">
+        Feb 17, 2019
+      </time>
+       • <span class="read-time" title="Estimated read time">
+    
+    
+      4 min read
+    
+</span></p>
+
+    
+
+    </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <ul class="section-nav">
+<li class="toc-entry toc-h2"><a href="#introducing-nms">Introducing NMS</a></li>
+<li class="toc-entry toc-h2"><a href="#implementation-of-iou-in-python">Implementation of IoU in Python</a></li>
+<li class="toc-entry toc-h2"><a href="#the-nms-algorithm">The NMS Algorithm</a>
+<ul>
+<li class="toc-entry toc-h4"><a href="#input">Input</a></li>
+<li class="toc-entry toc-h4"><a href="#output">Output</a></li>
+<li class="toc-entry toc-h4"><a href="#pseudo-code">Pseudo Code</a></li>
+<li class="toc-entry toc-h4"><a href="#code-implementation">Code implementation</a></li>
+<li class="toc-entry toc-h3"><a href="#experiment">Experiment</a></li>
+</ul>
+</li>
+</ul><h2 id="introducing-nms">
+<a class="anchor" href="#introducing-nms" aria-hidden="true"><span class="octicon octicon-link"></span></a>Introducing NMS</h2>
+
+<p>Non Maximum Suppression (NMS) is a technique used in numerous computer vision tasks. It is a class of algorithms to select one entity (e.g., bounding boxes) out of many overlapping entities. We can choose the selection criteria to arrive at the desired results. The criteria are most commonly some form of probability number and some form of overlap measure (e.g. Intersection over Union).</p>
+
+<p>Most object detection algorithms use NMS to whittle down many detected bounding boxes to only a few. At the most basic level, most object detectors do some form of <strong>windowing</strong>. Thousands of windows (anchors) of various sizes and shapes are generated.</p>
+
+<p>These windows supposedly contain only one object, and a classifier is used to obtain a probability/score for each class. Once the detector outputs a large number of bounding boxes, it is necessary to filter out the best ones. NMS is the most commonly used algorithm for this task.</p>
+
+<p>The <strong>Intersection over Union (IoU)</strong> metric, also referred to as the <strong><a href="https://en.wikipedia.org/wiki/Jaccard_index">Jaccard index</a></strong>, is essentially a method used usually to quantify the percent overlap between the ground truth BBox (Bounding Box) and the prediction BBox. However, in NMS, we find IoU between two predictions BBoxes instead.</p>
+
+<h2 id="implementation-of-iou-in-python">
+<a class="anchor" href="#implementation-of-iou-in-python" aria-hidden="true"><span class="octicon octicon-link"></span></a>Implementation of IoU in Python</h2>
+<p>We are given two boxes, box1 and box2, both defined by two coordinate tuples: (x, y) and (a, b)
+The first tuple is the lower left coordinate, and the second tuple is the upper right coordinates.</p>
+
+<p>So the area of each bounding box is as follows:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>area = (a-x) * (b-y)
+</code></pre></div></div>
+
+<p>Now we need to find the intersection box. To do that, find the largest (x, y) coordinates for the start of the intersection bounding box and the smallest (x, y) coordinates for the end of the intersection bounding box.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># box1 (x1,y1) (a1,b1)
+# box2 (x2,y2) (a2,b2)
+</span><span class="n">area1</span> <span class="o">=</span> <span class="p">(</span><span class="n">a1</span><span class="o">-</span><span class="n">x1</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">b1</span><span class="o">-</span><span class="n">y1</span><span class="p">)</span>
+<span class="n">area2</span> <span class="o">=</span> <span class="p">(</span><span class="n">a2</span><span class="o">-</span><span class="n">x2</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">b2</span><span class="o">-</span><span class="n">y2</span><span class="p">)</span>
+
+<span class="n">xx</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">)</span>
+<span class="n">yy</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">y1</span><span class="p">,</span> <span class="n">y2</span><span class="p">)</span>
+<span class="n">aa</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">a1</span><span class="p">,</span> <span class="n">a2</span><span class="p">)</span>
+<span class="n">bb</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">b1</span><span class="p">,</span> <span class="n">b2</span><span class="p">)</span>
+
+</code></pre></div></div>
+
+<p>So the intersection BBox has the coordinates (xx,yy) (aa,bb). Now we compute the width and height of the intersection bounding box, and use it to calculate the intersection area:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">w</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">aa</span> <span class="o">-</span> <span class="n">xx</span><span class="p">)</span>
+<span class="n">h</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">bb</span> <span class="o">-</span> <span class="n">yy</span><span class="p">)</span>
+<span class="n">intersection_area</span> <span class="o">=</span> <span class="n">w</span><span class="o">*</span><span class="n">h</span>
+</code></pre></div></div>
+
+<p>Now we find the union area of box boxes and compute the ratio of overlap between the computed bounding box and the bounding box in the area list</p>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">union_area</span> <span class="o">=</span> <span class="n">area1</span> <span class="o">+</span> <span class="n">area2</span> <span class="o">-</span> <span class="n">intersection_area</span>
+<span class="n">IoU</span> <span class="o">=</span> <span class="n">intersection_area</span> <span class="o">/</span> <span class="n">union_area</span>
+</code></pre></div></div>
+
+<h2 id="the-nms-algorithm">
+<a class="anchor" href="#the-nms-algorithm" aria-hidden="true"><span class="octicon octicon-link"></span></a>The NMS Algorithm</h2>
+
+<h4 id="input">
+<a class="anchor" href="#input" aria-hidden="true"><span class="octicon octicon-link"></span></a>Input</h4>
+<p>We get a list P of prediction BBoxes of the form <code class="language-plaintext highlighter-rouge">(x1,y1,x2,y2,c)</code>, where <code class="language-plaintext highlighter-rouge">(x1,y1) and (x2,y2)</code> are the ends of the BBox and <code class="language-plaintext highlighter-rouge">c</code> is the predicted confidence score of the model. We also get overlap threshold IoU <code class="language-plaintext highlighter-rouge">thresh_iou</code>.</p>
+
+<h4 id="output">
+<a class="anchor" href="#output" aria-hidden="true"><span class="octicon octicon-link"></span></a>Output</h4>
+<p>A list of filtered prediction BBoxes</p>
+
+<h4 id="pseudo-code">
+<a class="anchor" href="#pseudo-code" aria-hidden="true"><span class="octicon octicon-link"></span></a>Pseudo Code</h4>
+<ol>
+  <li>Initialize empty list $K$ for return values</li>
+  <li>Select prediction $S$ with the highest confidence score from $P$, and append it to $K$</li>
+  <li>Compare prediction $S$ with all predictions present in $P$ by calculating the IoU of $S$ with every prediction $P$. If the IoU is greater than the threshold thresh_iou for any prediction T present in P, remove prediction T from P.</li>
+  <li>If there are still predictions left in P, then go to Step 1 again, else return the list keep containing the filtered predictions.</li>
+</ol>
+
+<h4 id="code-implementation">
+<a class="anchor" href="#code-implementation" aria-hidden="true"><span class="octicon octicon-link"></span></a>Code implementation</h4>
+<p>Lets define our function, and write the first few lines which will extract the coordinates and confidence scores for every prediction box present:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">non_max_suppression</span><span class="p">(</span><span class="n">P</span><span class="p">:</span> <span class="n">torch</span><span class="p">.</span><span class="n">tensor</span><span class="p">,</span> <span class="n">iou_thresh</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
+	<span class="n">x1</span> <span class="o">=</span> <span class="n">P</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span>
+	<span class="n">y1</span> <span class="o">=</span> <span class="n">P</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span>
+    <span class="n">x2</span> <span class="o">=</span> <span class="n">P</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]</span>
+    <span class="n">y2</span> <span class="o">=</span> <span class="n">P</span><span class="p">[:,</span> <span class="mi">3</span><span class="p">]</span>
+    
+    <span class="n">scores</span> <span class="o">=</span> <span class="n">P</span><span class="p">[:,</span> <span class="mi">4</span><span class="p">]</span>
+</code></pre></div></div>
+
+<p>Now we calculate the area of all BBoxes, and initialize our list $K$ for the return values:</p>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">areas</span> <span class="o">=</span> <span class="p">(</span><span class="n">x2</span><span class="o">-</span><span class="n">x1</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">y2</span><span class="o">-</span><span class="n">y1</span><span class="p">)</span>
+<span class="n">order</span> <span class="o">=</span> <span class="n">scores</span><span class="p">.</span><span class="n">argsort</span><span class="p">()</span>
+
+<span class="n">K</span> <span class="o">=</span> <span class="p">[]</span>
+</code></pre></div></div>
+
+<p>Now we begin to iterate over our BBoxes, beginning with step 2 from above by extracting the index of the prediction with the highest score.</p>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">order</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+	<span class="n">idx</span> <span class="o">=</span> <span class="n">order</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+	<span class="n">K</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="n">P</span><span class="p">[</span><span class="n">idx</span><span class="p">])</span>
+
+	<span class="n">order</span> <span class="o">=</span> <span class="n">order</span><span class="p">[</span><span class="n">order</span><span class="p">:</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+</code></pre></div></div>
+
+<p>Now we get the coordinates according to the indicies by order using <code class="language-plaintext highlighter-rouge">Torch.index_select</code></p>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">xx1</span> <span class="o">=</span> <span class="n">torch</span><span class="p">.</span><span class="n">index_select</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span><span class="n">dim</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">index</span> <span class="o">=</span> <span class="n">order</span><span class="p">)</span>
+<span class="n">xx2</span> <span class="o">=</span> <span class="n">torch</span><span class="p">.</span><span class="n">index_select</span><span class="p">(</span><span class="n">x2</span><span class="p">,</span><span class="n">dim</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">index</span> <span class="o">=</span> <span class="n">order</span><span class="p">)</span>
+<span class="n">yy1</span> <span class="o">=</span> <span class="n">torch</span><span class="p">.</span><span class="n">index_select</span><span class="p">(</span><span class="n">y1</span><span class="p">,</span><span class="n">dim</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">index</span> <span class="o">=</span> <span class="n">order</span><span class="p">)</span>
+<span class="n">yy2</span> <span class="o">=</span> <span class="n">torch</span><span class="p">.</span><span class="n">index_select</span><span class="p">(</span><span class="n">y2</span><span class="p">,</span><span class="n">dim</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">index</span> <span class="o">=</span> <span class="n">order</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>Now we find the intersection of the BBox S and all the predictions left in P</p>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">xx1</span> <span class="o">=</span> <span class="n">torch</span><span class="p">.</span><span class="nb">max</span><span class="p">(</span><span class="n">xx1</span><span class="p">,</span> <span class="n">x1</span><span class="p">[</span><span class="n">idx</span><span class="p">])</span> <span class="c1"># essentially max(S.x1, T.x1)
+</span><span class="n">yy1</span> <span class="o">=</span> <span class="n">torch</span><span class="p">.</span><span class="nb">max</span><span class="p">(</span><span class="n">yy1</span><span class="p">,</span> <span class="n">y1</span><span class="p">[</span><span class="n">idx</span><span class="p">])</span>
+<span class="n">xx2</span> <span class="o">=</span> <span class="n">torch</span><span class="p">.</span><span class="nb">min</span><span class="p">(</span><span class="n">xx2</span><span class="p">,</span> <span class="n">x2</span><span class="p">[</span><span class="n">idx</span><span class="p">])</span>
+<span class="n">yy2</span> <span class="o">=</span> <span class="n">torch</span><span class="p">.</span><span class="nb">min</span><span class="p">(</span><span class="n">yy2</span><span class="p">,</span> <span class="n">y2</span><span class="p">[</span><span class="n">idx</span><span class="p">])</span>
+
+<span class="n">w</span> <span class="o">=</span> <span class="n">xx2</span> <span class="o">-</span> <span class="n">xx1</span>
+<span class="n">h</span> <span class="o">=</span> <span class="n">yy2</span> <span class="o">-</span> <span class="n">yy1</span>
+
+<span class="c1"># Clip lower bound at 0 to avoid negative values
+</span><span class="n">w</span> <span class="o">=</span> <span class="n">torch</span><span class="p">.</span><span class="n">clamp</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="nb">min</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
+<span class="n">h</span> <span class="o">=</span> <span class="n">torch</span><span class="p">.</span><span class="n">clamp</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="nb">min</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>Finally, we calculate the IoU between $S$ and all other BBoxes in $P$</p>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">intersect</span> <span class="o">=</span> <span class="n">w</span><span class="o">*</span><span class="n">h</span>
+<span class="n">rem_areas</span> <span class="o">=</span> <span class="n">torch</span><span class="p">.</span><span class="n">index_select</span><span class="p">(</span><span class="n">areas</span><span class="p">,</span> <span class="n">dim</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">index</span> <span class="o">=</span> <span class="n">order</span><span class="p">)</span>
+<span class="n">union</span> <span class="o">=</span> <span class="p">(</span><span class="n">rem_areas</span> <span class="o">-</span> <span class="n">inter</span><span class="p">)</span> <span class="o">+</span> <span class="n">areas</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+<span class="n">IoU</span> <span class="o">=</span> <span class="n">inter</span> <span class="o">/</span> <span class="n">union</span>
+
+<span class="c1"># keep the boxes with IoU less than iou_thresh
+</span><span class="n">mask</span> <span class="o">=</span> <span class="n">IoU</span> <span class="o">&lt;</span> <span class="n">iou_thresh</span>
+<span class="n">order</span> <span class="o">=</span> <span class="n">order</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>
+</code></pre></div></div>
+
+<h3 id="experiment">
+<a class="anchor" href="#experiment" aria-hidden="true"><span class="octicon octicon-link"></span></a>Experiment</h3>
+<p>Given</p>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">P</span> <span class="o">=</span> <span class="n">torch</span><span class="p">.</span><span class="n">tensor</span><span class="p">([</span>
+    <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mf">0.95</span><span class="p">],</span>
+    <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mf">0.93</span><span class="p">],</span>
+    <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mf">0.9</span><span class="p">,</span> <span class="mf">3.6</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mf">0.98</span><span class="p">],</span>
+    <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mf">0.9</span><span class="p">,</span> <span class="mf">3.5</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mf">0.97</span><span class="p">]</span>
+<span class="p">])</span>
+</code></pre></div></div>
+
+<p>we can plot the BBoxes to get this:
+![[nms_1.png]]
+Now we run our  function with iou_thresh as 0.5:
+![[nms_2.png]]</p>
+
+
+  </div><a class="u-url" href="/My-DS-Blog/2019/02/17/NMS.html" hidden></a>
+</article>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/My-DS-Blog/"></data>
+
+  <div class="wrapper">
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col">
+        <p class="feed-subscribe">
+          <a href="https://jackhmiller.github.io/My-DS-Blog/feed.xml">
+            <svg class="svg-icon orange">
+              <use xlink:href="/My-DS-Blog/assets/minima-social-icons.svg#rss"></use>
+            </svg><span>Subscribe</span>
+          </a>
+        </p>
+      </div>
+      <div class="footer-col">
+        <p>050-709-2944 | Jack.harris.miller@gmail.com</p>
+      </div>
+    </div>
+
+    <div class="social-links"><ul class="social-media-list"><li>
+  <a rel="me" href="https://github.com/jackhmiller" target="_blank" title="github">
+    <svg class="svg-icon grey">
+      <use xlink:href="/My-DS-Blog/assets/minima-social-icons.svg#github"></use>
+    </svg>
+  </a>
+</li>
+</ul>
+</div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>

@@ -43,7 +43,8 @@ My assumption was reinforced by what Nvidia has on their page describing LSTM ac
   <small> Source: https://developer.nvidia.com/discover/lstm <small>
 
 Yet I did not notice any speed up during training. When I compared the training times on GPU vs CPU while varying the batch size, I got:
-![[lsm_gpu_perf.png]]
+![]({{ site.baseurl }}/images/lsm_gpu_perf.png)
+    
 
 So CPU on small batch sizes perform better than GPUs, which only achieve superior performance as batch size increases dramatically. What could be the reason for this?
 
@@ -56,5 +57,6 @@ Further, CUDNN has functionality to specifically accelerate LSTM and GRU layers.
 
 
 To reinforce the point, in his blog post on benchmarking TensorFlow on cloud CPUs, Max Woolf analyzes the performance of Bidirectional LSTMs versus CPUs in terms of training time. His results speak for themselves as to how using a GPU for this architecture won't give you the performance acceleration you are expecting:
-![[gpu_cpu.png]]
+![]({{ site.baseurl }}/images/gpu_cpu.png)
+
 <small> Source: https://minimaxir.com/2017/07/cpu-or-gpu/ <small>

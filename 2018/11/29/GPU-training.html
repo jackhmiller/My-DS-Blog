@@ -144,7 +144,7 @@ window.onload = wrap_img;
 <p><small> Source: https://developer.nvidia.com/discover/lstm <small></small></small></p>
 
 <p>Yet I did not notice any speed up during training. When I compared the training times on GPU vs CPU while varying the batch size, I got:
-![[lsm_gpu_perf.png]]</p>
+<img src="/My-DS-Blog/images/lsm_gpu_perf.png" alt=""></p>
 
 <p>So CPU on small batch sizes perform better than GPUs, which only achieve superior performance as batch size increases dramatically. What could be the reason for this?</p>
 
@@ -159,8 +159,9 @@ window.onload = wrap_img;
 </blockquote>
 
 <p>To reinforce the point, in his blog post on benchmarking TensorFlow on cloud CPUs, Max Woolf analyzes the performance of Bidirectional LSTMs versus CPUs in terms of training time. His results speak for themselves as to how using a GPU for this architecture won’t give you the performance acceleration you are expecting:
-![[gpu_cpu.png]]
-<small> Source: https://minimaxir.com/2017/07/cpu-or-gpu/ <small></small></small></p>
+<img src="/My-DS-Blog/images/gpu_cpu.png" alt=""></p>
+
+<p><small> Source: https://minimaxir.com/2017/07/cpu-or-gpu/ <small></small></small></p>
 
   </div><a class="u-url" href="/My-DS-Blog/2018/11/29/GPU-training.html" hidden></a>
 </article>

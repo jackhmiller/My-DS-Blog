@@ -1,7 +1,7 @@
 ---
 title: Accelerating Seq2Seq LSTM Training - GPU vs CPU
 tags: [""]
-image: images/lstm.png
+image: images/lstm.PNG
 created: 2023-02-05 08:53
 toc: true
 layout: post

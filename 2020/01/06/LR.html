@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="twitter:card" content="summary_large_image" /><!-- Begin Jekyll SEO tag v2.6.1 -->
+<title>Learning Rate Schedulers | Concept Drift</title>
+<meta name="generator" content="Jekyll v4.1.1" />
+<meta property="og:title" content="Learning Rate Schedulers" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Different learning rate schedulers and their implementation in python" />
+<meta property="og:description" content="Different learning rate schedulers and their implementation in python" />
+<link rel="canonical" href="https://jackhmiller.github.io/My-DS-Blog/2020/01/06/LR.html" />
+<meta property="og:url" content="https://jackhmiller.github.io/My-DS-Blog/2020/01/06/LR.html" />
+<meta property="og:site_name" content="Concept Drift" />
+<meta property="og:image" content="https://jackhmiller.github.io/My-DS-Blog/images/lr.png" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2020-01-06T00:00:00-06:00" />
+<script type="application/ld+json">
+{"url":"https://jackhmiller.github.io/My-DS-Blog/2020/01/06/LR.html","@type":"BlogPosting","headline":"Learning Rate Schedulers","dateModified":"2020-01-06T00:00:00-06:00","datePublished":"2020-01-06T00:00:00-06:00","image":"https://jackhmiller.github.io/My-DS-Blog/images/lr.png","mainEntityOfPage":{"@type":"WebPage","@id":"https://jackhmiller.github.io/My-DS-Blog/2020/01/06/LR.html"},"description":"Different learning rate schedulers and their implementation in python","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/My-DS-Blog/assets/css/style.css"><link type="application/atom+xml" rel="alternate" href="https://jackhmiller.github.io/My-DS-Blog/feed.xml" title="Concept Drift" /><link rel="shortcut icon" type="image/x-icon" href="/My-DS-Blog/images/nn_JFc_icon.ico">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Primer/15.2.0/primer.css" integrity="sha512-xTz2ys4coGAOz8vuV1NcQBkgVmKhsSEtjbqyMJbBHRplFuvKIUo6xhLHpAyPt9mfR6twHJgn9OgVLuqOvjeBhg==" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.14.0/css/all.min.css" integrity="sha512-1PKOgIY59xJ8Co8+NE6FZ+LOAZKjy+KY8iq0G4B3CyeY6wYHN3yt9PW0XpSriVlkMXe40PTKnXrLnZ9+fkDaog==" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.12.0/katex.min.css" integrity="sha512-h7nl+xz8wgDlNM4NqKEM4F1NkIRS17M9+uJwIGwuo8vGqIl4BhuCKdxjWEINm+xyrUjNCnK5dCrhM0sj+wTIXw==" crossorigin="anonymous" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.12.0/katex.min.js" integrity="sha512-/CMIhXiDA3m2c9kzRyd97MTb3MC6OVnx4TElQ7fkkoRghwDf6gi41gaT1PwF270W6+J60uTmwgeRpNpJdRV6sg==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.12.0/contrib/auto-render.min.js" integrity="sha512-Do7uJAaHZm5OLrIv/yN4w0iG1dbu01kzdMNnFfu/mAqgUk6Nniv2JYHcwH+cNwjqgLcqcuBBk+JRvprLVI8azg==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha512-0doc9hKxR3PYwso42RD1p5ySZpzzuDiOwMrdCEh2WdJZCjcmFKc/wEnL+z8fBQrnHoiNWbo+3fiGkOYXBdQp4A==" crossorigin="anonymous"></script>
+    <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement( document.body, {
+        delimiters: [
+            {left: "$$", right: "$$", display: true},
+            {left: "[%", right: "%]", display: true},
+            {left: "$", right: "$", display: false}
+        ]}
+        );
+    });
+    </script>
+
+
+<script>
+function wrap_img(fn) {
+    if (document.attachEvent ? document.readyState === "complete" : document.readyState !== "loading") {
+        var elements = document.querySelectorAll(".post img");
+        Array.prototype.forEach.call(elements, function(el, i) {
+            if (el.getAttribute("title") && (el.className != "emoji")) {
+                const caption = document.createElement('figcaption');
+                var node = document.createTextNode(el.getAttribute("title"));
+                caption.appendChild(node);
+                const wrapper = document.createElement('figure');
+                wrapper.className = 'image';
+                el.parentNode.insertBefore(wrapper, el);
+                el.parentNode.removeChild(el);
+                wrapper.appendChild(el);
+                wrapper.appendChild(caption);
+            }
+        });
+    } else { document.addEventListener('DOMContentLoaded', fn); }
+}
+window.onload = wrap_img;
+</script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function(){
+    // add link icon to anchor tags
+    var elem = document.querySelectorAll(".anchor-link")
+    elem.forEach(e => (e.innerHTML = '<i class="fas fa-link fa-xs"></i>'));
+    });
+</script>
+</head>
+<body><header class="site-header">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/My-DS-Blog/">Concept Drift</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/My-DS-Blog/CV/">My CV</a><a class="page-link" href="/My-DS-Blog/about/">About Me</a><a class="page-link" href="/My-DS-Blog/search/">Search</a><a class="page-link" href="/My-DS-Blog/categories/">Tags</a></div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">Learning Rate Schedulers</h1><p class="page-description">Different learning rate schedulers and their implementation in python</p><p class="post-meta post-meta-title"><time class="dt-published" datetime="2020-01-06T00:00:00-06:00" itemprop="datePublished">
+        Jan 6, 2020
+      </time>
+       • <span class="read-time" title="Estimated read time">
+    
+    
+      5 min read
+    
+</span></p>
+
+    
+
+    </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <ul class="section-nav">
+<li class="toc-entry toc-h2"><a href="#introduction">Introduction</a>
+<ul>
+<li class="toc-entry toc-h3"><a href="#fixed-schedulers">Fixed Schedulers</a></li>
+<li class="toc-entry toc-h3"><a href="#decaying-schedules">Decaying Schedules</a></li>
+<li class="toc-entry toc-h3"><a href="#cyclic-schedules">Cyclic Schedules</a></li>
+</ul>
+</li>
+</ul><h2 id="introduction">
+<a class="anchor" href="#introduction" aria-hidden="true"><span class="octicon octicon-link"></span></a>Introduction</h2>
+<p>Many students and practitioners primarily focus on optimization <em>algorithms</em> for how to update the weight vectors rather than on the <em>rate</em> at which they are being updated. Nonetheless, adjusting the learning rate is often just as important as the actual algorithm. Learning rate ($\eta$) (LR) as a global hyperparameter determines the size of the steps which a GD optimizer takes along the direction of the slope of the surface derived from the loss function downhill until reaching a (local) minimum (valley).</p>
+
+<p>Choosing a proper LR can be difficult. A too small LR may lead to slow convergence, while a too large learning rate can deter convergence and cause the loss function to fluctuate and get stuck in a local minimum or even to diverge. Due to the difficulty of determining a good LR policy, the constant LR is a baseline default LR policy for training DNNs in several deep learning  frameworks (e.g., TensorFlow, PyTorch). Empirical approaches are then used manually in practice to find good LR values through trials and errors. Moreover, due to the lack of relevant systematic studies and analyses, the large search space for LR parameters often results in huge costs for this hand-tuning process, impairing the efficiency and performance of DNN training.</p>
+
+<p><em>But what if we wanted a learning rate that was a bit more dynamic than a fixed floating point number?</em></p>
+
+<p>Numerous efforts have been engaged to enhance the constant LR by incorporating a multistep dynamic learning rate schedule, which attempts to adjust the learning rate during different stages of DNN training by using a certain type of annealing techniques.<sup id="fnref:3" role="doc-noteref"><a href="#fn:3" class="footnote" rel="footnote">1</a></sup> This is especially challenging, given that good LR schedules need to adapt to the characteristics of different datasets and/or different neural network models. Further, as seen below different LR policies will result in different optimization paths, since even though initially different LR functions product similar results, as the number of iterations increases the accumulated impact of the LR updates could also lead to sub-optimal results.<sup id="fnref:1" role="doc-noteref"><a href="#fn:1" class="footnote" rel="footnote">2</a></sup> It might be that high LRs introduce high “kinetic energy” into the optimization and thus model parameters are bouncing around chaotically.</p>
+
+<p>![[LR_policies.png]]</p>
+
+<p>In this post, we will review some learning rate functions and their associated LR policies by examining their range parameters, step parameters, and value update parameters. We will divide the LR schedulers into 3 categories: fixed, decaying, and cyclic.</p>
+
+<h3 id="fixed-schedulers">
+<a class="anchor" href="#fixed-schedulers" aria-hidden="true"><span class="octicon octicon-link"></span></a>Fixed Schedulers</h3>
+<p>The simplest LR scheduler is time-based. For example, step decay is scheduler that adjusts the learning rate after a fixed number of steps, reducing the learning rate by a specified factor. This is useful for situations where the learning rate needs to decrease over time to allow the model to converge.</p>
+
+<p>The mathematical form of time-based decay is as follows:</p>
+
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>l</mi><mi>r</mi><mo>=</mo><mi>l</mi><msub><mi>r</mi><mn>0</mn></msub><mi mathvariant="normal">/</mi><mo stretchy="false">(</mo><mn>1</mn><mo>+</mo><mi>k</mi><mi>t</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">lr = lr_0/(1+kt)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.01968em;">l</span><span class="mord mathdefault" style="margin-right:0.02778em;">r</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.01968em;">l</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.02778em;">r</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.02778em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord">/</span><span class="mopen">(</span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathdefault" style="margin-right:0.03148em;">k</span><span class="mord mathdefault">t</span><span class="mclose">)</span></span></span></span></span>
+
+<p>Where $lr$, $k$ are hyperparameters and $t$ is the iteration number. In the Keras source code, the SGD optimizer takes a <code class="language-plaintext highlighter-rouge">decay</code> and <code class="language-plaintext highlighter-rouge">lr</code> arguments to update the LR by a decreasing factor each epoch<sup id="fnref:4" role="doc-noteref"><a href="#fn:4" class="footnote" rel="footnote">3</a></sup>:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">lr</span> <span class="o">*=</span> <span class="p">(</span><span class="mf">1.</span> <span class="o">/</span> <span class="p">(</span><span class="mf">1.</span> <span class="o">+</span> <span class="bp">self</span><span class="p">.</span><span class="n">decay</span> <span class="o">*</span> <span class="bp">self</span><span class="p">.</span><span class="n">iterations</span><span class="p">))</span>
+</code></pre></div></div>
+
+<p>Here is an implementation of a similar fixed schedule called step decay, with the following mathematical formulation:</p>
+
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>l</mi><mi>r</mi><mo>=</mo><mi>l</mi><msub><mi>r</mi><mn>0</mn></msub><mo>∗</mo><mi>d</mi><mi>r</mi><mi>o</mi><msup><mi>p</mi><mrow><mi>f</mi><mi>l</mi><mi>o</mi><mi>o</mi><mi>r</mi><mo stretchy="false">(</mo><mfrac><mrow><mi>e</mi><mi>p</mi><mi>o</mi><mi>c</mi><mi>h</mi></mrow><mtext>epochs drop</mtext></mfrac><mo stretchy="false">)</mo></mrow></msup></mrow><annotation encoding="application/x-tex">lr = lr_0 * drop^{floor(\frac{epoch}{\text{epochs drop}})}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.01968em;">l</span><span class="mord mathdefault" style="margin-right:0.02778em;">r</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.84444em;vertical-align:-0.15em;"></span><span class="mord mathdefault" style="margin-right:0.01968em;">l</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.02778em;">r</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.02778em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">∗</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:1.3110999999999997em;vertical-align:-0.19444em;"></span><span class="mord mathdefault">d</span><span class="mord mathdefault" style="margin-right:0.02778em;">r</span><span class="mord mathdefault">o</span><span class="mord"><span class="mord mathdefault">p</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:1.1166599999999998em;"><span style="top:-3.44577em;margin-right:0.05em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight" style="margin-right:0.10764em;">f</span><span class="mord mathdefault mtight" style="margin-right:0.01968em;">l</span><span class="mord mathdefault mtight">o</span><span class="mord mathdefault mtight">o</span><span class="mord mathdefault mtight" style="margin-right:0.02778em;">r</span><span class="mopen mtight">(</span><span class="mord mtight"><span class="mopen nulldelimiter sizing reset-size3 size6"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.9584142857142857em;"><span style="top:-2.656em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">epochs drop</span></span></span></span></span><span style="top:-3.2255000000000003em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line mtight" style="border-bottom-width:0.049em;"></span></span><span style="top:-3.4623857142857144em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">e</span><span class="mord mathdefault mtight">p</span><span class="mord mathdefault mtight">o</span><span class="mord mathdefault mtight">c</span><span class="mord mathdefault mtight">h</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.48288571428571425em;"><span></span></span></span></span></span><span class="mclose nulldelimiter sizing reset-size3 size6"></span></span><span class="mclose mtight">)</span></span></span></span></span></span></span></span></span></span></span></span></span>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">StepLR</span><span class="p">:</span>
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">optimizer</span><span class="p">,</span> <span class="n">step_size</span><span class="p">,</span> <span class="n">gamma</span><span class="p">):</span>
+		<span class="bp">self</span><span class="p">.</span><span class="n">optimizer</span> <span class="o">=</span> <span class="n">optimizer</span>
+		<span class="bp">self</span><span class="p">.</span><span class="n">step_size</span> <span class="o">=</span> <span class="n">step_size</span>
+		<span class="bp">self</span><span class="p">.</span><span class="n">gamma</span> <span class="o">=</span> <span class="n">gamma</span>
+		<span class="bp">self</span><span class="p">.</span><span class="n">last_step</span> <span class="o">=</span> <span class="mi">0</span>
+
+	<span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">current_step</span><span class="p">):</span>
+		<span class="k">if</span> <span class="n">current_step</span> <span class="o">-</span> <span class="bp">self</span><span class="p">.</span><span class="n">last_step</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="p">.</span><span class="n">step_size</span><span class="p">:</span>
+			<span class="k">for</span> <span class="n">param_group</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">.</span><span class="n">optimizer</span><span class="p">.</span><span class="n">param_groups</span><span class="p">:</span>
+				<span class="n">param_group</span><span class="p">[</span><span class="s">'lr'</span><span class="p">]</span> <span class="o">*=</span> <span class="bp">self</span><span class="p">.</span><span class="n">gamma</span>
+			<span class="bp">self</span><span class="p">.</span><span class="n">last_step</span> <span class="o">=</span> <span class="n">current_step</span>
+
+
+
+<span class="n">optimizer</span> <span class="o">=</span> <span class="c1"># SGD, Adam, etc.
+</span><span class="n">scheduler</span> <span class="o">=</span> <span class="n">StepLR</span><span class="p">(</span><span class="n">optimizer</span><span class="p">,</span> <span class="n">step_size</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">epoch</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_epoch</span><span class="p">):</span>
+	<span class="c1"># train...
+</span>	<span class="n">scheduler</span><span class="p">.</span><span class="n">step</span><span class="p">(</span><span class="n">epoch</span><span class="p">)</span>
+</code></pre></div></div>
+
+<h3 id="decaying-schedules">
+<a class="anchor" href="#decaying-schedules" aria-hidden="true"><span class="octicon octicon-link"></span></a>Decaying Schedules</h3>
+
+<p>One of the most widely used decaying schedulers is exponential decay: This scheduler adjusts the learning rate by a specified factor after each iteration. The learning rate decreases exponentially over time, which is useful for models that require a gradually decreasing learning rate. A use-case of this would be a larger learning rate to explore the loss surface and find one or more minima, where a slowing LR would help the loss function settle into the minimum rather than oscillating.  It can be calculated as follows:</p>
+
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>l</mi><mi>r</mi><mo>=</mo><mi>l</mi><msub><mi>r</mi><mn>0</mn></msub><mo>∗</mo><msup><mi>e</mi><mrow><mo stretchy="false">(</mo><mtext>−</mtext><mi>k</mi><mi>t</mi><mo stretchy="false">)</mo></mrow></msup></mrow><annotation encoding="application/x-tex">lr = lr_0 * e^{(−kt)}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.01968em;">l</span><span class="mord mathdefault" style="margin-right:0.02778em;">r</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:0.84444em;vertical-align:-0.15em;"></span><span class="mord mathdefault" style="margin-right:0.01968em;">l</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.02778em;">r</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.30110799999999993em;"><span style="top:-2.5500000000000003em;margin-left:-0.02778em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">∗</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.938em;vertical-align:0em;"></span><span class="mord"><span class="mord mathdefault">e</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.938em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mopen mtight">(</span><span class="mord mtight">−</span><span class="mord mathdefault mtight" style="margin-right:0.03148em;">k</span><span class="mord mathdefault mtight">t</span><span class="mclose mtight">)</span></span></span></span></span></span></span></span></span></span></span></span></span>
+
+<p>Where $lr$, $k$, are hyperparameters and $t$ is again the iteration number.</p>
+
+<p>In the code below, in each epoch the step method updates the learning rate of the optimizer by<br>
+multiplying it with the decay rate raised to the power of the epoch number.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">math</span>
+
+<span class="k">class</span> <span class="nc">ExponentialLR</span><span class="p">:</span>
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">optimizer</span><span class="p">,</span> <span class="n">gamma</span><span class="p">,</span> <span class="n">last_epoch</span><span class="o">=-</span><span class="mi">1</span><span class="p">):</span>
+		<span class="bp">self</span><span class="p">.</span><span class="n">optimizer</span> <span class="o">=</span> <span class="n">optimizer</span>
+		<span class="bp">self</span><span class="p">.</span><span class="n">gamma</span> <span class="o">=</span> <span class="n">gamma</span>
+		<span class="bp">self</span><span class="p">.</span><span class="n">last_epoch</span> <span class="o">=</span> <span class="n">last_epoch</span>
+
+	<span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">epoch</span><span class="p">):</span>
+		<span class="bp">self</span><span class="p">.</span><span class="n">last_epoch</span> <span class="o">=</span> <span class="n">epoch</span>
+		<span class="k">for</span> <span class="n">param_group</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">.</span><span class="n">optimizer</span><span class="p">.</span><span class="n">param_groups</span><span class="p">:</span>
+			<span class="n">param_group</span><span class="p">[</span><span class="s">'lr'</span><span class="p">]</span> <span class="o">*=</span> <span class="n">param_group</span><span class="p">[</span><span class="s">'lr'</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="p">.</span><span class="n">gamma</span> <span class="o">**</span> <span class="p">(</span><span class="n">epoch</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+
+
+
+
+<span class="n">optimizer</span> <span class="o">=</span> <span class="c1"># SGD, Adam, etc.
+</span><span class="n">scheduler</span> <span class="o">=</span> <span class="n">ExponentialLR</span><span class="p">(</span><span class="n">optimizer</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="mf">0.95</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">epoch</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_epoch</span><span class="p">):</span>
+	<span class="c1"># train...
+</span>	<span class="n">scheduler</span><span class="p">.</span><span class="n">step</span><span class="p">(</span><span class="n">epoch</span><span class="p">)</span>
+</code></pre></div></div>
+
+<h3 id="cyclic-schedules">
+<a class="anchor" href="#cyclic-schedules" aria-hidden="true"><span class="octicon octicon-link"></span></a>Cyclic Schedules</h3>
+<p>Cyclic schedules set the LR of each parameter group according to cyclical learning rate policy where the policy cycles the LR between two boundaries with a constant frequency, as detailed in the paper by Leslie Smith.<sup id="fnref:2" role="doc-noteref"><a href="#fn:2" class="footnote" rel="footnote">4</a></sup></p>
+
+<p>A classic example of such a scheduler is Cosine Annealing. This scheduler adjusts the learning rate according to a cosine annealing schedule, which starts high and decreases over time to zero. This is useful for models that require a gradually decreasing learning rate but with a more gradual decline in the latter stages of training.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">math</span>  
+  
+<span class="k">class</span> <span class="nc">CosineAnnealingLR</span><span class="p">:</span>  
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">optimizer</span><span class="p">,</span> <span class="n">T_max</span><span class="p">,</span> <span class="n">eta_min</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>  
+	<span class="s">"""
+	T_max:: the maximum number of steps over which the learning rate will decrease from 
+	its initial value to eta_min
+	eta_min:: the minimum value of the learning rate
+
+	LR equation: eta_min + (1 - eta_min) * (1 + cos(pi * current_step / T_max)) / 2
+	"""</span>
+		<span class="bp">self</span><span class="p">.</span><span class="n">optimizer</span> <span class="o">=</span> <span class="n">optimizer</span>  
+		<span class="bp">self</span><span class="p">.</span><span class="n">T_max</span> <span class="o">=</span> <span class="n">T_max</span>  
+		<span class="bp">self</span><span class="p">.</span><span class="n">eta_min</span> <span class="o">=</span> <span class="n">eta_min</span>  
+		<span class="bp">self</span><span class="p">.</span><span class="n">current_step</span> <span class="o">=</span> <span class="mi">0</span>  
+  
+	<span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>  
+		<span class="bp">self</span><span class="p">.</span><span class="n">current_step</span> <span class="o">+=</span> <span class="mi">1</span>  
+		<span class="n">lr</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">eta_min</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="p">.</span><span class="n">eta_min</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">math</span><span class="p">.</span><span class="n">cos</span><span class="p">(</span><span class="n">math</span><span class="p">.</span><span class="n">pi</span> <span class="o">*</span> 
+			<span class="bp">self</span><span class="p">.</span><span class="n">current_step</span> <span class="o">/</span> <span class="bp">self</span><span class="p">.</span><span class="n">T_max</span><span class="p">))</span> <span class="o">/</span> <span class="mi">2</span>  
+		<span class="k">for</span> <span class="n">param_group</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">.</span><span class="n">optimizer</span><span class="p">.</span><span class="n">param_groups</span><span class="p">:</span>  
+			<span class="n">param_group</span><span class="p">[</span><span class="s">'lr'</span><span class="p">]</span> <span class="o">=</span> <span class="n">lr</span>  
+
+
+<span class="n">optimizer</span> <span class="o">=</span> <span class="c1"># SGD, Adam, etc.  
+</span><span class="n">scheduler</span> <span class="o">=</span> <span class="n">CosineAnnealingLR</span><span class="p">(</span><span class="n">optimizer</span><span class="p">,</span> <span class="n">T_max</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">eta_min</span><span class="o">=</span><span class="mf">0.00001</span><span class="p">)</span>  
+  
+<span class="k">for</span> <span class="n">epoch</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_epoch</span><span class="p">):</span>
+	<span class="c1"># train...
+</span>	<span class="n">scheduler</span><span class="p">.</span><span class="n">step</span><span class="p">(</span><span class="n">epoch</span><span class="p">)</span>
+</code></pre></div></div>
+
+<div class="footnotes" role="doc-endnotes">
+  <ol>
+    <li id="fn:3" role="doc-endnote">
+      <p>For example see Akhilesh Gotmare, Nitish Shirish Keskar, Caiming Xiong, &amp; Richard Socher (2018). A Closer Look at Deep Learning Heuristics: Learning rate restarts, Warmup and Distillation_. CoRR, <em>abs/1810.13243</em>. <a href="#fnref:3" class="reversefootnote" role="doc-backlink">↩</a></p>
+    </li>
+    <li id="fn:1" role="doc-endnote">
+      <p>Wu Y, Liu L, Bae J, et al (2019). Demystifying Learning Rate Policies for High Accuracy Training of Deep Neural Networks. https://arxiv.org/pdf/1908.06477.pdf <a href="#fnref:1" class="reversefootnote" role="doc-backlink">↩</a></p>
+    </li>
+    <li id="fn:4" role="doc-endnote">
+      <p>https://github.com/keras-team/keras/blob/master/keras/optimizers/sgd.py <a href="#fnref:4" class="reversefootnote" role="doc-backlink">↩</a></p>
+    </li>
+    <li id="fn:2" role="doc-endnote">
+      <p>Leslie N. Smith (2015). No More Pesky Learning Rate Guessing Games_. CoRR, <em>abs/1506.01186</em>. <a href="#fnref:2" class="reversefootnote" role="doc-backlink">↩</a></p>
+    </li>
+  </ol>
+</div>
+
+  </div><a class="u-url" href="/My-DS-Blog/2020/01/06/LR.html" hidden></a>
+</article>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/My-DS-Blog/"></data>
+
+  <div class="wrapper">
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col">
+        <p class="feed-subscribe">
+          <a href="https://jackhmiller.github.io/My-DS-Blog/feed.xml">
+            <svg class="svg-icon orange">
+              <use xlink:href="/My-DS-Blog/assets/minima-social-icons.svg#rss"></use>
+            </svg><span>Subscribe</span>
+          </a>
+        </p>
+      </div>
+      <div class="footer-col">
+        <p>050-709-2944 | Jack.harris.miller@gmail.com</p>
+      </div>
+    </div>
+
+    <div class="social-links"><ul class="social-media-list"><li>
+  <a rel="me" href="https://github.com/jackhmiller" target="_blank" title="github">
+    <svg class="svg-icon grey">
+      <use xlink:href="/My-DS-Blog/assets/minima-social-icons.svg#github"></use>
+    </svg>
+  </a>
+</li>
+</ul>
+</div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>

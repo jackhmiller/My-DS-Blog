@@ -159,8 +159,7 @@ So we are adding the weight term $\alpha_{t}(1-p_t)^\gamma$ in addition to the c
 
 <p>So as the confidence of the classification increases, ie. the probability of ground truth cases, samples are considered increasingly “easier” and contribute less and less to the loss. The result is that the hard examples, or where the probability of ground truth is lower, contribute the most to the loss, thus forcing the model to tend to them in order to minimize the loss function. This is conceptually similar to boosting algorithms, where previously incorrectly classified examples receive more weight but in a different context.</p>
 
-<p>![[focal_loss.png]]
-Source: Figure 1 in Lin et al.</p>
+<p><img src="/My-DS-Blog/images/focal_loss.png" alt="" title="Figure 1 in Lin et al."></p>
 
 <h2 id="using-fl-as-an-optimizer">
 <a class="anchor" href="#using-fl-as-an-optimizer" aria-hidden="true"><span class="octicon octicon-link"></span></a>Using FL as an Optimizer</h2>

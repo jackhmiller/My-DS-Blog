@@ -59,7 +59,7 @@ N = \lim_{n\rightarrow \infty} \sum_{j=1}^n \beta^{j-1} = \frac{1}{1-\beta}
 \tag{2}
 $$
 
-![[eff_samples.png]]
+![]({{ site.baseurl }}/images/eff_samples.png "Figure 1 in Cui et al.- Two classes, one from the head and one from the tail of a long-tailed dataset (iNaturalist 2017 in this example), have drastically different number of samples. Models trained on these samples are biased toward dominant classes (black solid line). Reweighing the loss by inverse class frequency usually yields poor performance (red dashed line) on real-world data with high class imbalance.")
 
 ### How it Works in Practice
 For an input sample $x$ with label $y \in {1, 2, 3, ..., C}$ where $C$ is the total number of classes, the loss of the model can be denoted as $L(p, y)$ where $p \in [0, 1]$ are the estimated class probabilities $p = [p_{1}, p_{2}, ..., p_{C}]^T$. Supposing the number of samples for class $i$ is $n_i$, based on (1) then the number of samples for class $i$ is 

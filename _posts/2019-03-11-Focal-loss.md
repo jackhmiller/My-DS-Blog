@@ -58,8 +58,8 @@ So we are adding the weight term $\alpha_{t}(1-p_t)^\gamma$ in addition to the c
 
 So as the confidence of the classification increases, ie. the probability of ground truth cases, samples are considered increasingly "easier" and contribute less and less to the loss. The result is that the hard examples, or where the probability of ground truth is lower, contribute the most to the loss, thus forcing the model to tend to them in order to minimize the loss function. This is conceptually similar to boosting algorithms, where previously incorrectly classified examples receive more weight but in a different context. 
 
-![[focal_loss.png]]
-Source: Figure 1 in Lin et al.
+
+![]({{ site.baseurl }}/images/focal_loss.png "Figure 1 in Lin et al.")
 
 ## Using FL as an Optimizer
 For binary classification tasks, assume the prediction output of our model is *pred*. Then the corresponding probability is *sigmoid(pred)* or *s(pred)* for short. Substituting for $p$ into (2) above we get our evaluation function:

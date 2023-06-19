@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="twitter:card" content="summary_large_image" /><!-- Begin Jekyll SEO tag v2.6.1 -->
+<title>Dealing with Class Imbalance in Classification | Concept Drift</title>
+<meta name="generator" content="Jekyll v4.1.1" />
+<meta property="og:title" content="Dealing with Class Imbalance in Classification" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Introduction With the rapid increase of large-scale, real-world datasets, it becomes critical to address the problem of long-tailed data distribution (i.e., a few classes account for most of the data, while most classes are under-represented). Solutions have typically adopted class re-balancing strategies such as re-sampling and re-weighting based on the number of observations for each class. Many boosting algorithms that were part of the machine learning boom back 2016-17, which are natural fits for dealing with class imbalances due to their role as ensembles of weak learners, have hyperparameters related to class weights." />
+<meta property="og:description" content="Introduction With the rapid increase of large-scale, real-world datasets, it becomes critical to address the problem of long-tailed data distribution (i.e., a few classes account for most of the data, while most classes are under-represented). Solutions have typically adopted class re-balancing strategies such as re-sampling and re-weighting based on the number of observations for each class. Many boosting algorithms that were part of the machine learning boom back 2016-17, which are natural fits for dealing with class imbalances due to their role as ensembles of weak learners, have hyperparameters related to class weights." />
+<link rel="canonical" href="https://jackhmiller.github.io/My-DS-Blog/2019/03/16/Class-Balanced-Loss.html" />
+<meta property="og:url" content="https://jackhmiller.github.io/My-DS-Blog/2019/03/16/Class-Balanced-Loss.html" />
+<meta property="og:site_name" content="Concept Drift" />
+<meta property="og:image" content="https://jackhmiller.github.io/My-DS-Blog/images/google_class_imb.PNG" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2019-03-16T00:00:00-05:00" />
+<script type="application/ld+json">
+{"url":"https://jackhmiller.github.io/My-DS-Blog/2019/03/16/Class-Balanced-Loss.html","@type":"BlogPosting","headline":"Dealing with Class Imbalance in Classification","dateModified":"2019-03-16T00:00:00-05:00","datePublished":"2019-03-16T00:00:00-05:00","image":"https://jackhmiller.github.io/My-DS-Blog/images/google_class_imb.PNG","mainEntityOfPage":{"@type":"WebPage","@id":"https://jackhmiller.github.io/My-DS-Blog/2019/03/16/Class-Balanced-Loss.html"},"description":"Introduction With the rapid increase of large-scale, real-world datasets, it becomes critical to address the problem of long-tailed data distribution (i.e., a few classes account for most of the data, while most classes are under-represented). Solutions have typically adopted class re-balancing strategies such as re-sampling and re-weighting based on the number of observations for each class. Many boosting algorithms that were part of the machine learning boom back 2016-17, which are natural fits for dealing with class imbalances due to their role as ensembles of weak learners, have hyperparameters related to class weights.","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/My-DS-Blog/assets/css/style.css"><link type="application/atom+xml" rel="alternate" href="https://jackhmiller.github.io/My-DS-Blog/feed.xml" title="Concept Drift" /><link rel="shortcut icon" type="image/x-icon" href="/My-DS-Blog/images/nn_JFc_icon.ico">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Primer/15.2.0/primer.css" integrity="sha512-xTz2ys4coGAOz8vuV1NcQBkgVmKhsSEtjbqyMJbBHRplFuvKIUo6xhLHpAyPt9mfR6twHJgn9OgVLuqOvjeBhg==" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.14.0/css/all.min.css" integrity="sha512-1PKOgIY59xJ8Co8+NE6FZ+LOAZKjy+KY8iq0G4B3CyeY6wYHN3yt9PW0XpSriVlkMXe40PTKnXrLnZ9+fkDaog==" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.12.0/katex.min.css" integrity="sha512-h7nl+xz8wgDlNM4NqKEM4F1NkIRS17M9+uJwIGwuo8vGqIl4BhuCKdxjWEINm+xyrUjNCnK5dCrhM0sj+wTIXw==" crossorigin="anonymous" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.12.0/katex.min.js" integrity="sha512-/CMIhXiDA3m2c9kzRyd97MTb3MC6OVnx4TElQ7fkkoRghwDf6gi41gaT1PwF270W6+J60uTmwgeRpNpJdRV6sg==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.12.0/contrib/auto-render.min.js" integrity="sha512-Do7uJAaHZm5OLrIv/yN4w0iG1dbu01kzdMNnFfu/mAqgUk6Nniv2JYHcwH+cNwjqgLcqcuBBk+JRvprLVI8azg==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha512-0doc9hKxR3PYwso42RD1p5ySZpzzuDiOwMrdCEh2WdJZCjcmFKc/wEnL+z8fBQrnHoiNWbo+3fiGkOYXBdQp4A==" crossorigin="anonymous"></script>
+    <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement( document.body, {
+        delimiters: [
+            {left: "$$", right: "$$", display: true},
+            {left: "[%", right: "%]", display: true},
+            {left: "$", right: "$", display: false}
+        ]}
+        );
+    });
+    </script>
+
+
+<script>
+function wrap_img(fn) {
+    if (document.attachEvent ? document.readyState === "complete" : document.readyState !== "loading") {
+        var elements = document.querySelectorAll(".post img");
+        Array.prototype.forEach.call(elements, function(el, i) {
+            if (el.getAttribute("title") && (el.className != "emoji")) {
+                const caption = document.createElement('figcaption');
+                var node = document.createTextNode(el.getAttribute("title"));
+                caption.appendChild(node);
+                const wrapper = document.createElement('figure');
+                wrapper.className = 'image';
+                el.parentNode.insertBefore(wrapper, el);
+                el.parentNode.removeChild(el);
+                wrapper.appendChild(el);
+                wrapper.appendChild(caption);
+            }
+        });
+    } else { document.addEventListener('DOMContentLoaded', fn); }
+}
+window.onload = wrap_img;
+</script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function(){
+    // add link icon to anchor tags
+    var elem = document.querySelectorAll(".anchor-link")
+    elem.forEach(e => (e.innerHTML = '<i class="fas fa-link fa-xs"></i>'));
+    });
+</script>
+</head>
+<body><header class="site-header">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/My-DS-Blog/">Concept Drift</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/My-DS-Blog/CV/">My CV</a><a class="page-link" href="/My-DS-Blog/about/">About Me</a><a class="page-link" href="/My-DS-Blog/search/">Search</a><a class="page-link" href="/My-DS-Blog/categories/">Tags</a></div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">Dealing with Class Imbalance in Classification</h1><p class="post-meta post-meta-title"><time class="dt-published" datetime="2019-03-16T00:00:00-05:00" itemprop="datePublished">
+        Mar 16, 2019
+      </time>
+       • <span class="read-time" title="Estimated read time">
+    
+    
+      12 min read
+    
+</span></p>
+
+    
+
+    </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <h1 id="introduction">Introduction</h1>
+<p>With the rapid increase of large-scale, real-world datasets, it becomes critical to address the problem of long-tailed data distribution (i.e., a few classes account for most of the data, while most classes are under-represented). Solutions have typically adopted class re-balancing strategies such as re-sampling and re-weighting based on the number of observations for each class. Many boosting algorithms that were part of the machine learning boom back 2016-17, which are natural fits for dealing with class imbalances due to their role as ensembles of weak learners, have hyperparameters related to class weights.</p>
+
+<p>So from my perspective, with the initial ML boon in the mid to late 2020s, you had two methods available to you to deal with class imbalances that so often occur in industry: data-level methods and algorithm-level methods.</p>
+
+<h3 id="data-level-methods">Data-Level Methods</h3>
+<p>Data-level methods alter the class distribution in the original data by employing re-sampling strategies to balance the dataset. The simplest forms of resampling include random over-sampling and random undersampling. The former, like the Synthetic Minority Oversampling Technique (SMOTE) for example, handles class imbalance by duplicating the instances in the rare minority class and thus, augmenting the minority class, whereas the latter randomly drops instances from the majority class to match the cardinality of minority class. Experiments suggest that data sampling strategies have little effect on classification performance, however, other results in demonstrate that random oversampling leads to performance improvements.<sup id="fnref:2" role="doc-noteref"><a href="#fn:2" class="footnote" rel="footnote">1</a></sup></p>
+
+<p>While sampling strategies are widely adopted, these methods manipulate the original class representation of the given domain and introduce drawbacks. Particularly, over-sampling can potentially lead to overfitting and may aggravate the computational burden while under-sampling may eliminate useful information that could be vital for the induction process. For example, Castro et al. demonstrates that strategies adopted to mitigate effects of class imbalance such as undersampling adversely affect probability calibration of minority classes.<sup id="fnref:1" role="doc-noteref"><a href="#fn:1" class="footnote" rel="footnote">2</a></sup> Moreover, a classifier developed by employing sampling methods to artificially balance data may not be applicable to a population with a much difference prevalence rate since the classifier is trained to perform well on balanced data.</p>
+
+<h3 id="algorithm-level-methods">Algorithm-Level Methods</h3>
+<p>Algorithm-level approach involve adjusting the classifier, and can further be categorized into ensemble methods and cost-sensitive methods. The most widely used methods include bagging and boosting ensemble-based methods. For example, with XGBoost, <em>scale_pos_weight</em> value is used to scale the gradient for the positive class. This has the effect of scaling errors made by the model during training on the positive class and encourages the model to over-correct them. In turn, this can help the model achieve better performance when making predictions on the positive class. Pushed too far, it may result in the model overfitting the positive class at the cost of worse performance on the negative class or both classes. As such, the <em>scale_pos_weight</em> can be used to train a class-weighted or cost-sensitive version of XGBoost for imbalanced classification.</p>
+
+<p>A sensible default value to set for the <em>scale_pos_weight</em> hyperparameter is the inverse of the class distribution. For example, for a dataset with a 1 to 100 ratio for examples in the minority to majority classes, the <em>scale_pos_weight</em> can be set to 100. This will give classification errors made by the model on the minority class (positive class) 100 times more impact, and in turn, 100 times more correction than errors made on the majority class. The XGBoost documentation suggests a fast way to estimate this value using the training dataset as the total number of examples in the majority class divided by the total number of examples in the minority class: scale_pos_weight = total_negative_examples / total_positive_examples.</p>
+
+<h2 id="a-new-set-of-tools-emerges-optimization-level-methods">A New Set of Tools Emerges: Optimization-Level Methods</h2>
+<p>As the ML boom of the mid 2010s turned into the DL revolution of the late 2010s and early 2020s, synergies began to emerge across different subject areas and frameworks. Knowledge and practices invented for DL could be applied to ML settings, while theoretical knowledge gained from the study of ML systems like gradient behaviors could be used to inform the early theoretical work being done on DL. In the theme of our current topic of class imbalance, unique approaches were being developed for specific issues that could simultaneously be applied to a range of problems. For example, I have written in a previous post about Focal Loss, originally designed to solve object detection problems in a computer vision setting. This loss function was quickly applied to other areas to address the common occurrence of class imbalances in binary classification.</p>
+
+<p>These approaches were being developed for deep learning frameworks in the binary classification setting, often manipulating the cross-entropy loss that has become the de-facto loss function for deep binary classification tasks. Although not new from a theoretical or statistical perspective (a class-balanced loss assigns sample weights inversely proportionally to the class frequency<sup id="fnref:5" role="doc-noteref"><a href="#fn:5" class="footnote" rel="footnote">3</a></sup>), cost sensitive learning methods seek to reinforce the sensitivity of the classification algorithm towards the under-represented class by building on advancements in ML/DL by incorporating class-wise costs into the objective function of the classification algorithm during training process. So instead of each instance being either correctly or incorrectly classified, each class (or instance) is given a misclassification cost. Thus, instead of trying to optimize the accuracy, the problem is then to minimize the total misclassification cost.</p>
+
+<p>So building off my earlier post about Focal Loss, I would like to present another work that was published around the same time at Google. Like the Focal Loss paper, this novel paper seeks to address a specific issue in DL, but provides a tool that is applicable to any practitioner involves in classification tasks.</p>
+
+<h2 id="class-balanced-loss-based-on-effective-number-of-samples">Class-Balanced Loss Based on Effective Number of Samples</h2>
+<p>In a single sentence, proposes a class-wise re-weighting scheme for most frequently used losses (softmax-cross-entropy, focal loss, etc.) giving a quick boost of accuracy, especially when working with data that is highly class imbalanced.<sup id="fnref:4" role="doc-noteref"><a href="#fn:4" class="footnote" rel="footnote">4</a></sup> Their Class-Balanced Loss is designed to address the problem of training from imbalanced data by introducing a weighting factor that is inversely proportional to the effective number of samples. The class-balanced loss term can be applied to a wide range of deep networks and loss functions.</p>
+
+<p>The authors begin the paper by noting that in the context of deep feature representation learning using CNNs, re-sampling may either introduce large amounts of duplicated samples, which slows down the training and makes the model susceptible to overfitting when oversampling, or discard valuable examples that are important for feature learning when under-sampling. I have also found this to be in the case with other neural network architectures as well as gradient-boosting algorithms. Due to these disadvantages of applying re-sampling for CNN training, the authors focus on re-weighting approaches, namely, how to design a better class-balanced loss.</p>
+
+<p>Due to highly imbalanced data, directly training the model or re-weighting the loss by inverse number of samples cannot yield satisfactory performance. Intuitively, the more data, the better. However, since there is information overlap among data, as the number of samples increases, the marginal benefit a model can extract from the data diminishes.</p>
+
+<p>In light of this, the authors propose a novel theoretical framework to characterize data overlap and calculate the effective number of samples in a model and loss-agnostic manner. A class-balanced re-weighting term that is inversely proportional to the effective number of samples is added to the loss function. Extensive experimental results indicate that this class-balanced term provides a significant boost to the performance of commonly used loss functions for training CNNs on long-tailed datasets.</p>
+
+<p>Their theoretical framework is inspired by the random covering problem, where the goal is to cover a large set by a sequence of i.i.d. random small sets. <strong>The idea is to capture the diminishing marginal benefits by using more data points of a class. Due to intrinsic similarities among real-world data, as the number of samples grows, it is highly possible that a newly added sample is a near-duplicate of existing samples.</strong></p>
+
+<h3 id="data-sampling-as-random-covering">Data Sampling as Random Covering</h3>
+<p>Given a class, denote the set of all possible data in the feature space of the class as $S$. The volume of $S$ is $N$ and $N \geq 1$. The data sampling process is a random covering problem where the more data being sampled, the better the coverage of $S$. The expected total volume of sampled data increases as the number of data increases and is bounded by $N$.</p>
+
+<p>Therefore, the authors define what they call <em>the effective number of samples</em> as an exponential function of the number of samples. with a hyperparameter $\beta \in [0, 1)$ controlling how fast the expected volume of samples grows. This expected volume of samples is denoted as the effective number of samples $E_n$, where $n$ is the number of samples, and can be defined as follows:</p>
+
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable width="100%"><mtr><mtd width="50%"></mtd><mtd><mrow><msub><mi>E</mi><mi>n</mi></msub><mo>=</mo><mfrac><mrow><mo stretchy="false">(</mo><mn>1</mn><mo>−</mo><msup><mi>β</mi><mi>n</mi></msup><mo stretchy="false">)</mo></mrow><mrow><mn>1</mn><mo>−</mo><mi>β</mi></mrow></mfrac><mo>=</mo><munderover><mo>∑</mo><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><mi>n</mi></munderover><msup><mi>β</mi><mrow><mi>j</mi><mo>−</mo><mn>1</mn></mrow></msup></mrow></mtd><mtd width="50%"></mtd><mtd><mtext>(1)</mtext></mtd></mtr></mtable><annotation encoding="application/x-tex">E_n = \frac{(1-\beta^n)}{1-\beta} = \sum_{j=1}^n \beta^{j-1}
+\tag{1}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.83333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.05764em;">E</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.151392em;"><span style="top:-2.5500000000000003em;margin-left:-0.05764em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">n</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:2.30744em;vertical-align:-0.8804400000000001em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.427em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">1</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mord mathdefault" style="margin-right:0.05278em;">β</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mopen">(</span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.05278em;">β</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.664392em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">n</span></span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.8804400000000001em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:3.0651740000000007em;vertical-align:-1.4137769999999998em;"></span><span class="mop op-limits"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.6513970000000007em;"><span style="top:-1.872331em;margin-left:0em;"><span class="pstrut" style="height:3.05em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight" style="margin-right:0.05724em;">j</span><span class="mrel mtight">=</span><span class="mord mtight">1</span></span></span></span><span style="top:-3.050005em;"><span class="pstrut" style="height:3.05em;"></span><span><span class="mop op-symbol large-op">∑</span></span></span><span style="top:-4.3000050000000005em;margin-left:0em;"><span class="pstrut" style="height:3.05em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">n</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.4137769999999998em;"><span></span></span></span></span></span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.05278em;">β</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.874664em;"><span style="top:-3.1130000000000004em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight" style="margin-right:0.05724em;">j</span><span class="mbin mtight">−</span><span class="mord mtight">1</span></span></span></span></span></span></span></span></span></span><span class="tag"><span class="strut" style="height:3.0651740000000007em;vertical-align:-1.4137769999999998em;"></span><span class="mord text"><span class="mord">(</span><span class="mord"><span class="mord">1</span></span><span class="mord">)</span></span></span></span></span></span>
+
+<p>This means that the $j^{th}$ sample contributes $\beta^{j-1}$ to the effective number. The total volume N for all possible data in the class can then be calculated as:</p>
+
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable width="100%"><mtr><mtd width="50%"></mtd><mtd><mrow><mi>N</mi><mo>=</mo><munder><mo><mi>lim</mi><mo>⁡</mo></mo><mrow><mi>n</mi><mo>→</mo><mi mathvariant="normal">∞</mi></mrow></munder><munderover><mo>∑</mo><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><mi>n</mi></munderover><msup><mi>β</mi><mrow><mi>j</mi><mo>−</mo><mn>1</mn></mrow></msup><mo>=</mo><mfrac><mn>1</mn><mrow><mn>1</mn><mo>−</mo><mi>β</mi></mrow></mfrac></mrow></mtd><mtd width="50%"></mtd><mtd><mtext>(2)</mtext></mtd></mtr></mtable><annotation encoding="application/x-tex">N = \lim_{n\rightarrow \infty} \sum_{j=1}^n \beta^{j-1} = \frac{1}{1-\beta}
+\tag{2}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.68333em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.10903em;">N</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:3.0651740000000007em;vertical-align:-1.4137769999999998em;"></span><span class="mop op-limits"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.69444em;"><span style="top:-2.4em;margin-left:0em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">n</span><span class="mrel mtight">→</span><span class="mord mtight">∞</span></span></span></span><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span><span class="mop">lim</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.7em;"><span></span></span></span></span></span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mop op-limits"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.6513970000000007em;"><span style="top:-1.872331em;margin-left:0em;"><span class="pstrut" style="height:3.05em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight" style="margin-right:0.05724em;">j</span><span class="mrel mtight">=</span><span class="mord mtight">1</span></span></span></span><span style="top:-3.050005em;"><span class="pstrut" style="height:3.05em;"></span><span><span class="mop op-symbol large-op">∑</span></span></span><span style="top:-4.3000050000000005em;margin-left:0em;"><span class="pstrut" style="height:3.05em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">n</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.4137769999999998em;"><span></span></span></span></span></span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.05278em;">β</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.874664em;"><span style="top:-3.1130000000000004em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight" style="margin-right:0.05724em;">j</span><span class="mbin mtight">−</span><span class="mord mtight">1</span></span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:2.20188em;vertical-align:-0.8804400000000001em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.32144em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">1</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mord mathdefault" style="margin-right:0.05278em;">β</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.8804400000000001em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span><span class="tag"><span class="strut" style="height:3.0651740000000007em;vertical-align:-1.4137769999999998em;"></span><span class="mord text"><span class="mord">(</span><span class="mord"><span class="mord">2</span></span><span class="mord">)</span></span></span></span></span></span>
+
+<p>![[eff_samples.png]]</p>
+
+<h3 id="how-it-works-in-practice">How it Works in Practice</h3>
+<p>For an input sample $x$ with label $y \in {1, 2, 3, …, C}$ where $C$ is the total number of classes, the loss of the model can be denoted as $L(p, y)$ where $p \in [0, 1]$ are the estimated class probabilities $p = [p_{1}, p_{2}, …, p_{C}]^T$. Supposing the number of samples for class $i$ is $n_i$, based on (1) then the number of samples for class $i$ is</p>
+
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable width="100%"><mtr><mtd width="50%"></mtd><mtd><mrow><msub><mi>E</mi><msub><mi>n</mi><mi>i</mi></msub></msub><mo>=</mo><mfrac><mrow><mn>1</mn><mo>−</mo><msubsup><mi>β</mi><mi>i</mi><msub><mi>n</mi><mi>i</mi></msub></msubsup></mrow><mrow><mn>1</mn><mo>−</mo><msub><mi>β</mi><mi>i</mi></msub></mrow></mfrac></mrow></mtd><mtd width="50%"></mtd><mtd><mtext>(3)</mtext></mtd></mtr></mtable><annotation encoding="application/x-tex">E_{n_{i}}= \frac{1-\beta_i^{n_i}}{1-\beta_{i}}
+\tag{3}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.93343em;vertical-align:-0.2501em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.05764em;">E</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.15139199999999997em;"><span style="top:-2.5500000000000003em;margin-left:-0.05764em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight"><span class="mord mathdefault mtight">n</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3280857142857143em;"><span style="top:-2.357em;margin-left:0em;margin-right:0.07142857142857144em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">i</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.143em;"><span></span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2501em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:2.303732em;vertical-align:-0.8804400000000001em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.423292em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">1</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.05278em;">β</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.31166399999999994em;"><span style="top:-2.5500000000000003em;margin-left:-0.05278em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">i</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.6769999999999996em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">1</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mord"><span class="mord mathdefault" style="margin-right:0.05278em;">β</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.746292em;"><span style="top:-2.4231360000000004em;margin-left:-0.05278em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight">i</span></span></span><span style="top:-3.1449000000000003em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight"><span class="mord mathdefault mtight">n</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3280857142857143em;"><span style="top:-2.357em;margin-left:0em;margin-right:0.07142857142857144em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mathdefault mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.143em;"><span></span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.276864em;"><span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.8804400000000001em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span><span class="tag"><span class="strut" style="height:2.303732em;vertical-align:-0.8804400000000001em;"></span><span class="mord text"><span class="mord">(</span><span class="mord"><span class="mord">3</span></span><span class="mord">)</span></span></span></span></span></span>
+
+<p>where $\beta_{i} = \frac{N_{i}- 1}{N_i}$. To balance the loss, a normalized weighting factor $\alpha_i$ is introduced that is inversely proportional to the effective number of samples for class $i$: $\alpha_{i} \propto \frac{1}{E_{n_i}}$.</p>
+
+<p><strong>TLDR</strong>: given a sample from class $i$ that contains $n_i$ samples in total, the authors propose to add a weighting factor $\frac{1-\beta}{1-\beta^{n_i}}$ where $\beta \in [0, 1)$ is a hyperparameter.</p>
+
+<p>Finally, the class-balanced (CB) loss can be written as:</p>
+
+<p><span class="katex-error" title="ParseError: KaTeX parse error: \tag works only in display equations" style="color:#cc0000">\text{CB}(p, y) = \frac{1}{E_{n_{y}}}L(p,y) = \frac{1-\beta}{1-\beta^{n_{y}}}L(p,y)
+\tag{4}</span>
+where $n_i$ is the number of samples in the ground-truth class $y$. Note that $\beta=0$ corresponds to no re-weighting and $\beta \rightarrow 1$ corresponds to re-weighting by inverse class frequency. The proposed novel concept of effective number of samples enables us to use a hyperparameter $\beta$ to smoothly adjust the class-balanced term between no re-weighting and re-weighing by inverse class frequency.</p>
+
+<h3 id="applications">Applications</h3>
+<p>The proposed class-balanced term is model-agnostic and loss-agnostic in the sense that it’s independent to the choice of loss function and predicted class probabilities. Here is  how to apply class-balanced term to two commonly used loss functions: softmax cross-entropy loss and focal loss:</p>
+
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable width="100%"><mtr><mtd width="50%"></mtd><mtd><mrow><msub><mtext>CE</mtext><mtext>softmax</mtext></msub><mo stretchy="false">(</mo><mi>z</mi><mo separator="true">,</mo><mi>y</mi><mo stretchy="false">)</mo><mo>=</mo><mo>−</mo><mtext>log</mtext><mo stretchy="false">(</mo><mfrac><mrow><mtext>exp</mtext><mo stretchy="false">(</mo><msub><mi>z</mi><mi>y</mi></msub><mo stretchy="false">)</mo></mrow><mrow><munderover><mo>∑</mo><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><mi>C</mi></munderover><mtext>exp</mtext><mo stretchy="false">(</mo><msub><mi>z</mi><mi>j</mi></msub><mo stretchy="false">)</mo></mrow></mfrac><mo stretchy="false">)</mo></mrow></mtd><mtd width="50%"></mtd><mtd><mtext>(5a)</mtext></mtd></mtr></mtable><annotation encoding="application/x-tex">\text{CE}_{\text{softmax}}(z, y) = -\text{log}(\frac{\text{exp}(z_y)}{\sum_{j=1}^{C}\text{exp}(z_{j})})
+\tag{5a}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord text"><span class="mord">CE</span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.33610799999999996em;"><span style="top:-2.5500000000000003em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">softmax</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathdefault" style="margin-right:0.04398em;">z</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord mathdefault" style="margin-right:0.03588em;">y</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span></span><span class="base"><span class="strut" style="height:2.734049em;vertical-align:-1.3070490000000001em;"></span><span class="mord">−</span><span class="mord text"><span class="mord">log</span></span><span class="mopen">(</span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.427em;"><span style="top:-2.128769em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mop"><span class="mop op-symbol small-op" style="position:relative;top:-0.0000050000000000050004em;">∑</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.981231em;"><span style="top:-2.40029em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight" style="margin-right:0.05724em;">j</span><span class="mrel mtight">=</span><span class="mord mtight">1</span></span></span></span><span style="top:-3.2029em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight" style="margin-right:0.07153em;">C</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.43581800000000004em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mord text"><span class="mord">exp</span></span><span class="mopen">(</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.04398em;">z</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.311664em;"><span style="top:-2.5500000000000003em;margin-left:-0.04398em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight" style="margin-right:0.05724em;">j</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span><span class="mclose">)</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord text"><span class="mord">exp</span></span><span class="mopen">(</span><span class="mord"><span class="mord mathdefault" style="margin-right:0.04398em;">z</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.15139200000000003em;"><span style="top:-2.5500000000000003em;margin-left:-0.04398em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathdefault mtight" style="margin-right:0.03588em;">y</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286108em;"><span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.3070490000000001em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mclose">)</span></span><span class="tag"><span class="strut" style="height:2.734049em;vertical-align:-1.3070490000000001em;"></span><span class="mord text"><span class="mord">(</span><span class="mord"><span class="mord">5</span><span class="mord">a</span></span><span class="mord">)</span></span></span></span></span></span>
+
+<p><span class="katex-error" title="ParseError: KaTeX parse error: \tag works only in display equations" style="color:#cc0000">\text{CB}_{\text{softmax}}(z, y) = -\frac{1-\beta}{1-\beta^{n_{y}}}\text{log}(\frac{\text{exp}(z_y)}{\sum_{j=1}^{C}\text{exp}(z_{j})})
+\tag{5b}</span>
+<span class="katex-error" title="ParseError: KaTeX parse error: \tag works only in display equations" style="color:#cc0000">\text{FL}(z, y) = -\sum_{i=1}^{C}(1-p_i^t)^{\gamma}\text{log}(p_i^t)
+\tag{6a}</span>
+<span class="katex-error" title="ParseError: KaTeX parse error: \tag works only in display equations" style="color:#cc0000">\text{CB}_{\text{focal}}(z, y) = -\frac{1-\beta}{1-\beta^{n_{y}}}\sum_{i=1}^{C}(1-p_i^t)^{\gamma}\text{log}(p_i^t)
+\tag{6a}</span></p>
+
+<h3 id="code-implementation">Code Implementation</h3>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="n">np</span>
+<span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">import</span> <span class="nn">torch.nn.functional</span> <span class="k">as</span> <span class="n">F</span>
+
+
+<span class="k">def</span> <span class="nf">focal_loss</span><span class="p">(</span><span class="n">labels</span><span class="p">,</span> <span class="n">logits</span><span class="p">,</span> <span class="n">alpha</span><span class="p">,</span> <span class="n">gamma</span><span class="p">):</span>
+    <span class="s">"""Compute the focal loss between `logits` and the ground truth `labels`.
+
+    Focal loss = -alpha_t * (1-pt)^gamma * log(pt)
+    where pt is the probability of being classified to the true class.
+    pt = p (if true class), otherwise pt = 1 - p. p = sigmoid(logit).
+
+    Args:
+      labels: A float tensor of size [batch, num_classes].
+      logits: A float tensor of size [batch, num_classes].
+      alpha: A float tensor of size [batch_size]
+        specifying per-example weight for balanced cross entropy.
+      gamma: A float scalar modulating loss from hard and easy examples.
+
+    Returns:
+      focal_loss: A float32 scalar representing normalized total loss.
+    """</span>    
+    <span class="n">BCLoss</span> <span class="o">=</span> <span class="n">F</span><span class="p">.</span><span class="n">binary_cross_entropy_with_logits</span><span class="p">(</span><span class="nb">input</span><span class="o">=</span><span class="n">logits</span><span class="p">,</span>
+											    <span class="n">target</span><span class="o">=</span><span class="n">labels</span><span class="p">,</span>
+											    <span class="n">reduction</span><span class="o">=</span><span class="s">"none"</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">gamma</span> <span class="o">==</span> <span class="mf">0.0</span><span class="p">:</span>
+        <span class="n">modulator</span> <span class="o">=</span> <span class="mf">1.0</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">modulator</span> <span class="o">=</span> <span class="n">torch</span><span class="p">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">gamma</span> <span class="o">*</span> <span class="n">labels</span> <span class="o">*</span> <span class="n">logits</span> <span class="o">-</span> <span class="n">gamma</span> <span class="o">*</span> <span class="n">torch</span><span class="p">.</span><span class="n">log</span><span class="p">(</span><span class="mi">1</span> <span class="o">+</span> 
+            <span class="n">torch</span><span class="p">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">1.0</span> <span class="o">*</span> <span class="n">logits</span><span class="p">)))</span>
+
+    <span class="n">loss</span> <span class="o">=</span> <span class="n">modulator</span> <span class="o">*</span> <span class="n">BCLoss</span>
+
+    <span class="n">weighted_loss</span> <span class="o">=</span> <span class="n">alpha</span> <span class="o">*</span> <span class="n">loss</span>
+    <span class="n">focal_loss</span> <span class="o">=</span> <span class="n">torch</span><span class="p">.</span><span class="nb">sum</span><span class="p">(</span><span class="n">weighted_loss</span><span class="p">)</span>
+
+    <span class="n">focal_loss</span> <span class="o">/=</span> <span class="n">torch</span><span class="p">.</span><span class="nb">sum</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">focal_loss</span>
+
+
+<span class="k">def</span> <span class="nf">CB_loss</span><span class="p">(</span><span class="n">labels</span><span class="p">,</span> <span class="n">logits</span><span class="p">,</span> <span class="n">samples_per_cls</span><span class="p">,</span> <span class="n">no_of_classes</span><span class="p">,</span> <span class="n">loss_type</span><span class="p">,</span> <span class="n">beta</span><span class="p">,</span> <span class="n">gamma</span><span class="p">):</span>
+    <span class="s">"""Compute the Class Balanced Loss between `logits` and the ground truth `labels`.
+
+    Class Balanced Loss: ((1-beta)/(1-beta^n))*Loss(labels, logits)
+    where Loss is one of the standard losses used for Neural Networks.
+
+    Args:
+      labels: A int tensor of size [batch].
+      logits: A float tensor of size [batch, no_of_classes].
+      samples_per_cls: A python list of size [no_of_classes].
+      no_of_classes: total number of classes. int
+      loss_type: string. One of "sigmoid", "focal", "softmax".
+      beta: float. Hyperparameter for Class balanced loss.
+      gamma: float. Hyperparameter for Focal loss.
+
+    Returns:
+      cb_loss: A float tensor representing class balanced loss
+    """</span>
+    <span class="n">effective_num</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="n">np</span><span class="p">.</span><span class="n">power</span><span class="p">(</span><span class="n">beta</span><span class="p">,</span> <span class="n">samples_per_cls</span><span class="p">)</span>
+    <span class="n">weights</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">beta</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="p">.</span><span class="n">array</span><span class="p">(</span><span class="n">effective_num</span><span class="p">)</span>
+    <span class="n">weights</span> <span class="o">=</span> <span class="n">weights</span> <span class="o">/</span> <span class="n">np</span><span class="p">.</span><span class="nb">sum</span><span class="p">(</span><span class="n">weights</span><span class="p">)</span> <span class="o">*</span> <span class="n">no_of_classes</span>
+
+    <span class="n">labels_one_hot</span> <span class="o">=</span> <span class="n">F</span><span class="p">.</span><span class="n">one_hot</span><span class="p">(</span><span class="n">labels</span><span class="p">,</span> <span class="n">no_of_classes</span><span class="p">).</span><span class="nb">float</span><span class="p">()</span>
+
+    <span class="n">weights</span> <span class="o">=</span> <span class="n">torch</span><span class="p">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">weights</span><span class="p">).</span><span class="nb">float</span><span class="p">()</span>
+    <span class="n">weights</span> <span class="o">=</span> <span class="n">weights</span><span class="p">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">weights</span> <span class="o">=</span> <span class="n">weights</span><span class="p">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">labels_one_hot</span><span class="p">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">labels_one_hot</span>
+    <span class="n">weights</span> <span class="o">=</span> <span class="n">weights</span><span class="p">.</span><span class="nb">sum</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">weights</span> <span class="o">=</span> <span class="n">weights</span><span class="p">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">weights</span> <span class="o">=</span> <span class="n">weights</span><span class="p">.</span><span class="n">repeat</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">no_of_classes</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">loss_type</span> <span class="o">==</span> <span class="s">"focal"</span><span class="p">:</span>
+        <span class="n">cb_loss</span> <span class="o">=</span> <span class="n">focal_loss</span><span class="p">(</span><span class="n">labels_one_hot</span><span class="p">,</span> <span class="n">logits</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="n">gamma</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">loss_type</span> <span class="o">==</span> <span class="s">"sigmoid"</span><span class="p">:</span>
+        <span class="n">cb_loss</span> <span class="o">=</span> <span class="n">F</span><span class="p">.</span><span class="n">binary_cross_entropy_with_logits</span><span class="p">(</span><span class="nb">input</span><span class="o">=</span><span class="n">logits</span><span class="p">,</span>
+												    <span class="n">target</span><span class="o">=</span><span class="n">labels_one_hot</span><span class="p">,</span>
+												    <span class="n">weights</span><span class="o">=</span><span class="n">weights</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">loss_type</span> <span class="o">==</span> <span class="s">"softmax"</span><span class="p">:</span>
+        <span class="n">pred</span> <span class="o">=</span> <span class="n">logits</span><span class="p">.</span><span class="n">softmax</span><span class="p">(</span><span class="n">dim</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">cb_loss</span> <span class="o">=</span> <span class="n">F</span><span class="p">.</span><span class="n">binary_cross_entropy</span><span class="p">(</span><span class="nb">input</span><span class="o">=</span><span class="n">pred</span><span class="p">,</span>
+								        <span class="n">target</span><span class="o">=</span><span class="n">labels_one_hot</span><span class="p">,</span>
+								        <span class="n">weight</span><span class="o">=</span><span class="n">weights</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">cb_loss</span>
+
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">no_of_classes</span> <span class="o">=</span> <span class="mi">5</span>
+<span class="n">logits</span> <span class="o">=</span> <span class="n">torch</span><span class="p">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="n">no_of_classes</span><span class="p">).</span><span class="nb">float</span><span class="p">()</span>
+<span class="n">labels</span> <span class="o">=</span> <span class="n">torch</span><span class="p">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">no_of_classes</span><span class="p">,</span> <span class="n">size</span> <span class="o">=</span> <span class="p">(</span><span class="mi">10</span><span class="p">,))</span>
+<span class="n">beta</span> <span class="o">=</span> <span class="mf">0.9999</span>
+<span class="n">gamma</span> <span class="o">=</span> <span class="mf">2.0</span>
+<span class="n">samples_per_cls</span> <span class="o">=</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">]</span>
+<span class="n">loss_type</span> <span class="o">=</span> <span class="s">"focal"</span>
+
+<span class="n">cb_loss</span> <span class="o">=</span> <span class="n">CB_loss</span><span class="p">(</span><span class="n">labels</span><span class="p">,</span>
+				  <span class="n">logits</span><span class="p">,</span>
+				  <span class="n">samples_per_cls</span><span class="p">,</span>
+				  <span class="n">no_of_classes</span><span class="p">,</span>
+				  <span class="n">loss_type</span><span class="p">,</span>
+				  <span class="n">beta</span><span class="p">,</span>
+				  <span class="n">gamma</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">cb_loss</span><span class="p">)</span>
+</code></pre></div></div>
+
+<div class="footnotes" role="doc-endnotes">
+  <ol>
+    <li id="fn:2" role="doc-endnote">
+      <p>M. Buda, A. Maki, and M. A. Mazurowski, “A systematic study of the class imbalance problem in convolutional neural networks,” Neural Networks, vol. 106, pp. 249–259, 2018. <a href="#fnref:2" class="reversefootnote" role="doc-backlink">&#8617;</a></p>
+    </li>
+    <li id="fn:1" role="doc-endnote">
+      <p>C. L. Castro and A. P. Braga, “Novel cost-sensitive approach to improve the multilayer perceptron performance on imbalanced data,” IEEE transactions on neural networks and learning systems, vol. 24, no. 6, pp. 888–899, 2013. <a href="#fnref:1" class="reversefootnote" role="doc-backlink">&#8617;</a></p>
+    </li>
+    <li id="fn:5" role="doc-endnote">
+      <p>C. Huang, Y. Li, C. Change Loy, and X. Tang. Learning deep representation for imbalanced classification. In CVPR, 2016; N. Sarafianos, X. Xu, and I. A. Kakadiaris. Deep imbalanced attribute classification using visual attention aggregation. In ECCV, 2018. <a href="#fnref:5" class="reversefootnote" role="doc-backlink">&#8617;</a></p>
+    </li>
+    <li id="fn:4" role="doc-endnote">
+      <p>Yin Cui, Menglin Jia, Tsung-Yi Lin, Yang Song, &amp; Serge J. Belongie (2019). Class-Balanced Loss Based on Effective Number of Samples_. CoRR, <em>abs/1901.05555</em>. <a href="#fnref:4" class="reversefootnote" role="doc-backlink">&#8617;</a></p>
+    </li>
+  </ol>
+</div>
+
+  </div><a class="u-url" href="/My-DS-Blog/2019/03/16/Class-Balanced-Loss.html" hidden></a>
+</article>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/My-DS-Blog/"></data>
+
+  <div class="wrapper">
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col">
+        <p class="feed-subscribe">
+          <a href="https://jackhmiller.github.io/My-DS-Blog/feed.xml">
+            <svg class="svg-icon orange">
+              <use xlink:href="/My-DS-Blog/assets/minima-social-icons.svg#rss"></use>
+            </svg><span>Subscribe</span>
+          </a>
+        </p>
+      </div>
+      <div class="footer-col">
+        <p>050-709-2944 | Jack.harris.miller@gmail.com</p>
+      </div>
+    </div>
+
+    <div class="social-links"><ul class="social-media-list"><li>
+  <a rel="me" href="https://github.com/jackhmiller" target="_blank" title="github">
+    <svg class="svg-icon grey">
+      <use xlink:href="/My-DS-Blog/assets/minima-social-icons.svg#github"></use>
+    </svg>
+  </a>
+</li>
+</ul>
+</div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>

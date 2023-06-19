@@ -1,10 +1,12 @@
-
 ---
 title: Focal Loss
-image: "images/focal_loss.png"
+tags: [""]
+image: images/focal_loss.png
 created: 2023-06-19
+toc: true
 layout: post
-description: 
+description: Understanding and applying the novel Focal Loss for classification with extreme class imbalances. 
+hide: false
 ---
 
 ## Motivation

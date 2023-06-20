@@ -79,6 +79,7 @@ $$
 \text{CB}(p, y) = \frac{1}{E_{n_{y}}}L(p,y) = \frac{1-\beta}{1-\beta^{n_{y}}}L(p,y)
 \tag{4}
 $$
+
 where $n_i$ is the number of samples in the ground-truth class $y$. Note that $\beta=0$ corresponds to no re-weighting and $\beta \rightarrow 1$ corresponds to re-weighting by inverse class frequency. The proposed novel concept of effective number of samples enables us to use a hyperparameter $\beta$ to smoothly adjust the class-balanced term between no re-weighting and re-weighing by inverse class frequency.
 
 ### Applications
@@ -93,10 +94,12 @@ $$
 \text{CB}_{\text{softmax}}(z, y) = -\frac{1-\beta}{1-\beta^{n_{y}}}\text{log}(\frac{\text{exp}(z_y)}{\sum_{j=1}^{C}\text{exp}(z_{j})})
 \tag{5b}
 $$
+
 $$
 \text{FL}(z, y) = -\sum_{i=1}^{C}(1-p_i^t)^{\gamma}\text{log}(p_i^t)
 \tag{6a}
 $$
+
 $$
 \text{CB}_{\text{focal}}(z, y) = -\frac{1-\beta}{1-\beta^{n_{y}}}\sum_{i=1}^{C}(1-p_i^t)^{\gamma}\text{log}(p_i^t)
 \tag{6a}

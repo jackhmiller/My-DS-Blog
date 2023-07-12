@@ -135,7 +135,7 @@ window.onload = wrap_img;
 </ul>
 
 <p>Ex.
-![[NF_change_of_variables.png]]</p>
+<img src="/My-DS-Blog/images/NF_change_of_variables.png" alt="" title="Source: Badly drawn by the author" /></p>
 
 <p>Ultimately, we want to find a $p_z(x)$ that is easy to work with, by finding the function that transforms the complex distribution $p_x(x)$ (our data) into $p_z(x)$.  So for example, making the distribution of our images $p_x(x)$ look like Gaussian noise.</p>
 
@@ -160,8 +160,7 @@ window.onload = wrap_img;
   </tbody>
 </table>
 
-<p>![[NF_sketch.png]]
-(Source: Justin Solomon,  6.838: Shape Analysis)</p>
+<p><img src="/My-DS-Blog/images/NF_sketch.png" alt="" title="Source: Justin Solomon,  MIT 6.838: Shape Analysis" /></p>
 
 <p>In terms of notation in the above sketch, we want to learn the parameters of $T_\phi$ that achieve the bijective mapping.</p>
 
@@ -193,8 +192,7 @@ We can sample from the base measure ($z$), push it through the transform (flows)
 
 <p>This allows us to build a complex flow from the composition of simpler flows. This is similar to stacking layers in a DNN.</p>
 
-<p>![[NF_flows.png]]
-Source: <sup id="fnref:1" role="doc-noteref"><a href="#fn:1" class="footnote" rel="footnote">3</a></sup></p>
+<p><img src="/My-DS-Blog/images/NF_flows.png" alt="" title="Source: [^1]" /></p>
 
 <p>This means that the determinant term in eq. 1 and eq. 2 can now be expressed as the product of the determinants of the individual functions:</p>
 
@@ -220,8 +218,7 @@ Source: <sup id="fnref:1" role="doc-noteref"><a href="#fn:1" class="footnote" re
 </table>
 
 <p><strong><u>Forward</u>- the flow direction</strong>
-![[coupling_flow_forward.png]]
-(Source: Marcus Brubaker, A tutorial on Normalizing Flows)</p>
+<img src="/My-DS-Blog/images/coupling_flow_forward.png" alt="" title="Source: Marcus Brubaker, A tutorial on Normalizing Flows" /></p>
 
 <p>The $\theta$ in the coupling network above can be an arbitrarily complex function, like a MLP, CNN, etc. The parameters output from the coupling network are then applied to the second split in what is labeled as the coupling transform above.</p>
 
@@ -230,9 +227,7 @@ Source: <sup id="fnref:1" role="doc-noteref"><a href="#fn:1" class="footnote" re
 <p>We repeat this splitting process, applying shuffling, and go around and around until each part of $x$ has a chance to be a part of the conditioning coupling network.</p>
 
 <p><strong><u>Inverse:</u> the generative direction</strong>
-![[coupling_flow_reverse.png]]</p>
-
-<p>(Source: Marcus Brubaker, A tutorial on Normalizing Flows)</p>
+<img src="/My-DS-Blog/images/coupling_flow_reverse.png" alt="" title="Source: Marcus Brubaker, A tutorial on Normalizing Flows" /></p>
 
 <h2 id="training-process">Training Process</h2>
 <ol>
@@ -267,8 +262,7 @@ Source: <sup id="fnref:1" role="doc-noteref"><a href="#fn:1" class="footnote" re
   <li>Update $\theta$</li>
 </ol>
 
-<p>![[NF_training_example.png]]
-(Source: Hans van Gorp- https://www.youtube.com/watch?v=yxVcnuRrKqQ)</p>
+<p><img src="/My-DS-Blog/images/NF_training_example.png" alt="" title="Source: Hans van Gorp- https://www.youtube.com/watch?v=yxVcnuRrKqQ" /></p>
 
 <div class="footnotes" role="doc-endnotes">
   <ol>
@@ -277,9 +271,6 @@ Source: <sup id="fnref:1" role="doc-noteref"><a href="#fn:1" class="footnote" re
     </li>
     <li id="fn:2" role="doc-endnote">
       <p>Function composition is a way of combining two functions to create a new function by applying one function to the output of the other function. A set or collection of objects is said to be closed under a certain operation if applying that operation to any two objects in the set always produces another object that is also in the set. For example, consider a set of functions S. We say that this set of functions is closed under composition if, for any two functions f and g in S, the composition of f and g, denoted as f(g(x)), is also in S. <a href="#fnref:2" class="reversefootnote" role="doc-backlink">&#8617;</a></p>
-    </li>
-    <li id="fn:1" role="doc-endnote">
-      <p>https://mbrubake.github.io/eccv2020-nf_in_cv-tutorial/ <a href="#fnref:1" class="reversefootnote" role="doc-backlink">&#8617;</a></p>
     </li>
   </ol>
 </div>

@@ -29,7 +29,7 @@ where:
 - $Df(x)$ is the Jacobian of $f(x)$
 
 Ex.
-![[NF_change_of_variables.png]]
+![]({{ site.baseurl }}/images/NF_change_of_variables.png "Source: Badly drawn by the author")
 
 Ultimately, we want to find a $p_z(x)$ that is easy to work with, by finding the function that transforms the complex distribution $p_x(x)$ (our data) into $p_z(x)$.  So for example, making the distribution of our images $p_x(x)$ look like Gaussian noise. 
 
@@ -47,8 +47,7 @@ $$
 
 where $\theta$ are the parameters of the flow $f(x|\theta)$. It is constructing these flows that is the key research problem with NFs. 
 
-![[NF_sketch.png]]
-(Source: Justin Solomon,  6.838: Shape Analysis)
+![]({{ site.baseurl }}/images/NF_sketch.png "Source: Justin Solomon,  MIT 6.838: Shape Analysis")
 
 In terms of notation in the above sketch, we want to learn the parameters of $T_\phi$ that achieve the bijective mapping. 
 
@@ -70,8 +69,7 @@ $$
 
 This allows us to build a complex flow from the composition of simpler flows. This is similar to stacking layers in a DNN. 
 
-![[NF_flows.png]]
-Source: [^1]
+![]({{ site.baseurl }}/images/NF_flows.png "Source: [^1]")
 
 This means that the determinant term in eq. 1 and eq. 2 can now be expressed as the product of the determinants of the individual functions:
 
@@ -96,8 +94,8 @@ $$
 where $\hat{f}(x^B|\theta(x^A))$ is another flow but whose parameters depend on $x^A$. 
 
 **<u>Forward</u>- the flow direction**
-![[coupling_flow_forward.png]]
-(Source: Marcus Brubaker, A tutorial on Normalizing Flows)
+![]({{ site.baseurl }}/images/coupling_flow_forward.png "Source: Marcus Brubaker, A tutorial on Normalizing Flows")
+
 
 The $\theta$ in the coupling network above can be an arbitrarily complex function, like a MLP, CNN, etc. The parameters output from the coupling network are then applied to the second split in what is labeled as the coupling transform above.
 
@@ -106,10 +104,7 @@ For example, if $f$ is a linear transformation (an affine flow), the coupling ne
 We repeat this splitting process, applying shuffling, and go around and around until each part of $x$ has a chance to be a part of the conditioning coupling network. 
 
 **<u>Inverse:</u> the generative direction**
-![[coupling_flow_reverse.png]]
-
-
-(Source: Marcus Brubaker, A tutorial on Normalizing Flows)
+![]({{ site.baseurl }}/images/coupling_flow_reverse.png "Source: Marcus Brubaker, A tutorial on Normalizing Flows")
 
 
 ## Training Process
@@ -119,8 +114,7 @@ We repeat this splitting process, applying shuffling, and go around and around u
 4. Calculate the loss: $L = |z|_2^2 + \sum\text{log}|z|$
 5. Update $\theta$
 
-![[NF_training_example.png]]
-(Source: Hans van Gorp- https://www.youtube.com/watch?v=yxVcnuRrKqQ)
+![]({{ site.baseurl }}/images/NF_training_example.png "Source: Hans van Gorp- https://www.youtube.com/watch?v=yxVcnuRrKqQ")
 
 
 [^1]: https://mbrubake.github.io/eccv2020-nf_in_cv-tutorial/

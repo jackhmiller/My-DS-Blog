@@ -122,8 +122,7 @@ window.onload = wrap_img;
 
 <p>Numerous efforts have been engaged to enhance the constant LR by incorporating a multistep dynamic learning rate schedule, which attempts to adjust the learning rate during different stages of DNN training by using a certain type of annealing techniques.<sup id="fnref:3" role="doc-noteref"><a href="#fn:3" class="footnote" rel="footnote">1</a></sup> This is especially challenging, given that good LR schedules need to adapt to the characteristics of different datasets and/or different neural network models. Further, as seen below different LR policies will result in different optimization paths, since even though initially different LR functions product similar results, as the number of iterations increases the accumulated impact of the LR updates could also lead to sub-optimal results.<sup id="fnref:1" role="doc-noteref"><a href="#fn:1" class="footnote" rel="footnote">2</a></sup> It might be that high LRs introduce high “kinetic energy” into the optimization and thus model parameters are bouncing around chaotically.</p>
 
-<p>![[LR_policies.png]]
-<img src="/My-DS-Blog/images/LR_policies.png" alt="" title="Convergence of different LR schedulers by iteration"></p>
+<p><img src="/My-DS-Blog/images/LR_policies.png" alt="" title="Convergence of different LR schedulers by iteration"></p>
 
 <p>In this post, we will review some learning rate functions and their associated LR policies by examining their range parameters, step parameters, and value update parameters. We will divide the LR schedulers into 3 categories: fixed, decaying, and cyclic.</p>
 

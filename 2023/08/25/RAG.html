@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="twitter:card" content="summary_large_image" /><!-- Begin Jekyll SEO tag v2.6.1 -->
+<title>Chunking in RAG | Concept Drift</title>
+<meta name="generator" content="Jekyll v4.1.1" />
+<meta property="og:title" content="Chunking in RAG" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Chunking strategies for increasing effectiveness of RAG systems" />
+<meta property="og:description" content="Chunking strategies for increasing effectiveness of RAG systems" />
+<link rel="canonical" href="https://jackhmiller.github.io/My-DS-Blog/2023/08/25/RAG.html" />
+<meta property="og:url" content="https://jackhmiller.github.io/My-DS-Blog/2023/08/25/RAG.html" />
+<meta property="og:site_name" content="Concept Drift" />
+<meta property="og:image" content="https://jackhmiller.github.io/My-DS-Blog/images/chunk_thumb.png" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2023-08-25T00:00:00-05:00" />
+<script type="application/ld+json">
+{"url":"https://jackhmiller.github.io/My-DS-Blog/2023/08/25/RAG.html","@type":"BlogPosting","headline":"Chunking in RAG","dateModified":"2023-08-25T00:00:00-05:00","datePublished":"2023-08-25T00:00:00-05:00","image":"https://jackhmiller.github.io/My-DS-Blog/images/chunk_thumb.png","mainEntityOfPage":{"@type":"WebPage","@id":"https://jackhmiller.github.io/My-DS-Blog/2023/08/25/RAG.html"},"description":"Chunking strategies for increasing effectiveness of RAG systems","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/My-DS-Blog/assets/css/style.css"><link type="application/atom+xml" rel="alternate" href="https://jackhmiller.github.io/My-DS-Blog/feed.xml" title="Concept Drift" /><link rel="shortcut icon" type="image/x-icon" href="/My-DS-Blog/images/nn_JFc_icon.ico">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Primer/15.2.0/primer.css" integrity="sha512-xTz2ys4coGAOz8vuV1NcQBkgVmKhsSEtjbqyMJbBHRplFuvKIUo6xhLHpAyPt9mfR6twHJgn9OgVLuqOvjeBhg==" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.14.0/css/all.min.css" integrity="sha512-1PKOgIY59xJ8Co8+NE6FZ+LOAZKjy+KY8iq0G4B3CyeY6wYHN3yt9PW0XpSriVlkMXe40PTKnXrLnZ9+fkDaog==" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.12.0/katex.min.css" integrity="sha512-h7nl+xz8wgDlNM4NqKEM4F1NkIRS17M9+uJwIGwuo8vGqIl4BhuCKdxjWEINm+xyrUjNCnK5dCrhM0sj+wTIXw==" crossorigin="anonymous" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.12.0/katex.min.js" integrity="sha512-/CMIhXiDA3m2c9kzRyd97MTb3MC6OVnx4TElQ7fkkoRghwDf6gi41gaT1PwF270W6+J60uTmwgeRpNpJdRV6sg==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.12.0/contrib/auto-render.min.js" integrity="sha512-Do7uJAaHZm5OLrIv/yN4w0iG1dbu01kzdMNnFfu/mAqgUk6Nniv2JYHcwH+cNwjqgLcqcuBBk+JRvprLVI8azg==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha512-0doc9hKxR3PYwso42RD1p5ySZpzzuDiOwMrdCEh2WdJZCjcmFKc/wEnL+z8fBQrnHoiNWbo+3fiGkOYXBdQp4A==" crossorigin="anonymous"></script>
+    <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement( document.body, {
+        delimiters: [
+            {left: "$$", right: "$$", display: true},
+            {left: "[%", right: "%]", display: true},
+            {left: "$", right: "$", display: false}
+        ]}
+        );
+    });
+    </script>
+
+
+<script>
+function wrap_img(fn) {
+    if (document.attachEvent ? document.readyState === "complete" : document.readyState !== "loading") {
+        var elements = document.querySelectorAll(".post img");
+        Array.prototype.forEach.call(elements, function(el, i) {
+            if (el.getAttribute("title") && (el.className != "emoji")) {
+                const caption = document.createElement('figcaption');
+                var node = document.createTextNode(el.getAttribute("title"));
+                caption.appendChild(node);
+                const wrapper = document.createElement('figure');
+                wrapper.className = 'image';
+                el.parentNode.insertBefore(wrapper, el);
+                el.parentNode.removeChild(el);
+                wrapper.appendChild(el);
+                wrapper.appendChild(caption);
+            }
+        });
+    } else { document.addEventListener('DOMContentLoaded', fn); }
+}
+window.onload = wrap_img;
+</script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function(){
+    // add link icon to anchor tags
+    var elem = document.querySelectorAll(".anchor-link")
+    elem.forEach(e => (e.innerHTML = '<i class="fas fa-link fa-xs"></i>'));
+    });
+</script>
+</head>
+<body><header class="site-header">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/My-DS-Blog/">Concept Drift</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/My-DS-Blog/CV/">My CV</a><a class="page-link" href="/My-DS-Blog/about/">About Me</a><a class="page-link" href="/My-DS-Blog/search/">Search</a><a class="page-link" href="/My-DS-Blog/categories/">Tags</a></div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">Chunking in RAG</h1><p class="page-description">Chunking strategies for increasing effectiveness of RAG systems</p><p class="post-meta post-meta-title"><time class="dt-published" datetime="2023-08-25T00:00:00-05:00" itemprop="datePublished">
+        Aug 25, 2023
+      </time>
+       • <span class="read-time" title="Estimated read time">
+    
+    
+      7 min read
+    
+</span></p>
+
+    
+
+    </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <ul class="section-nav">
+<li class="toc-entry toc-h2"><a href="#introduction">Introduction</a></li>
+<li class="toc-entry toc-h2"><a href="#what-is-chunking">What is chunking?</a></li>
+<li class="toc-entry toc-h2"><a href="#why-chunk">Why Chunk?</a></li>
+<li class="toc-entry toc-h2"><a href="#chunking-strategies">Chunking Strategies</a>
+<ul>
+<li class="toc-entry toc-h3"><a href="#naive-chunking">Naive Chunking</a></li>
+<li class="toc-entry toc-h3"><a href="#structural-chunking">Structural Chunking</a></li>
+<li class="toc-entry toc-h3"><a href="#semantic-chunking">Semantic Chunking</a></li>
+<li class="toc-entry toc-h3"><a href="#ner-chunking">NER Chunking</a></li>
+<li class="toc-entry toc-h3"><a href="#agent-based-chunking">Agent-based Chunking</a></li>
+</ul>
+</li>
+<li class="toc-entry toc-h2"><a href="#summarization">Summarization</a>
+<ul>
+<li class="toc-entry toc-h3"><a href="#chunk-decoupling">Chunk Decoupling</a></li>
+</ul>
+</li>
+</ul><h2 id="introduction">
+<a class="anchor" href="#introduction" aria-hidden="true"><span class="octicon octicon-link"></span></a>Introduction</h2>
+<p>Language models have become an important and flexible building block in a variety of user-facing language technologies, including conve2024-02-05rsational interfaces, search and summarization, and collaborative writing. These models perform downstream tasks primarily via prompting: all relevant task specification and data to process is formatted as a textual input context, and the model returns a generated text completion. These input contexts can contain thousands of tokens, especially when language models are used to process long documents (e.g., legal or scientific documents, conversation histories, etc.) or when language models are augmented with external information.</p>
+
+<p>Existing language models are generally implemented with Transformers, which require memory and compute that increases quadratically in sequence length. As a result, Transformer language models were often trained with relatively small context windows (between 512- 2048 tokens)<sup id="fnref:2" role="doc-noteref"><a href="#fn:2" class="footnote" rel="footnote">1</a></sup>. Despite relatively small context windows, it has been observed that language models still struggle to robustly access and use information in their input contexts.<sup id="fnref:1" role="doc-noteref"><a href="#fn:1" class="footnote" rel="footnote">2</a></sup></p>
+
+<p>This finding is pertinent for retrieval augmentation generation (RAG) pipelines, who’s context is critical for successful inference. However, when designing such a system, one should not begin by focusing on the final stage in a pipeline, namely if the model is successfully using the context provided, but rather start at the beginning of said pipeline. This follows the well known data science moniker: garbage in leads to garbage out. This leads us to the topic of this post, and the first preprocessing step in any RAG pipeline: <strong>chunking</strong>.</p>
+<h2 id="what-is-chunking">
+<a class="anchor" href="#what-is-chunking" aria-hidden="true"><span class="octicon octicon-link"></span></a>What is chunking?</h2>
+<p>Chunking is how you break up your own data as part of a RAG pipeline so it can be 1) stored &amp; retrieved effectively and 2) provide accurate and prudent context to an LLM at inference. Unlike fine-tuning, RAG enables an LLM to work with your own data (data that is has not been trained on)</p>
+
+<p>![[rag.excalidraw]]</p>
+
+<h2 id="why-chunk">
+<a class="anchor" href="#why-chunk" aria-hidden="true"><span class="octicon octicon-link"></span></a>Why Chunk?</h2>
+<ol>
+  <li>LLMs have limited context window</li>
+  <li>Not realistic to provide all data to LLM at once</li>
+  <li>You will want to feed the LLM only relevant information at inference time</li>
+</ol>
+
+<p>Considerations</p>
+<ul>
+  <li>Length of text
+    <ul>
+      <li>books, academic articles</li>
+    </ul>
+  </li>
+  <li>Short text (smaller chunks)
+    <ul>
+      <li>customer review, social media</li>
+    </ul>
+  </li>
+  <li>Understand embedding model so it is compatible with our chunk length for token size limits</li>
+  <li>What is our use case? Short Q&amp;A or are longer responses desired</li>
+  <li>Just because a model can take a larger context window, doesn’t mean it should be given more tokens as context (memory constraints and latency, compute cost)</li>
+</ul>
+
+<h2 id="chunking-strategies">
+<a class="anchor" href="#chunking-strategies" aria-hidden="true"><span class="octicon octicon-link"></span></a>Chunking Strategies</h2>
+
+<h3 id="naive-chunking">
+<a class="anchor" href="#naive-chunking" aria-hidden="true"><span class="octicon octicon-link"></span></a>Naive Chunking</h3>
+<ul>
+  <li>Developer-defined fixed number of characters</li>
+  <li>Can set a chunk overlap or a delimiter</li>
+  <li>It is fast and efficient but it does not account for document structure (headings, sections, etc.)</li>
+</ul>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">langchain.text_splitter</span> <span class="kn">import</span> <span class="n">CharacterTextSplitter</span>
+
+<span class="n">splitter</span> <span class="o">=</span> <span class="n">CharacterTextSplitter</span><span class="p">(</span>
+								 <span class="n">chunk_size</span><span class="o">=</span><span class="mi">100</span>
+								 <span class="n">chunk_overlap</span><span class="o">=</span><span class="mi">10</span>
+								 <span class="n">separator</span><span class="o">=</span><span class="s">"</span><span class="se">\n\n</span><span class="s">"</span>
+<span class="p">)</span>
+<span class="n">chunks</span> <span class="o">=</span> <span class="n">splitter</span><span class="p">.</span><span class="n">create_documents</span><span class="p">([</span><span class="n">text</span><span class="p">])</span><span class="sb">``</span><span class="err">`</span>
+<span class="c1">### NLP-Driven Sentence Splitting
+</span><span class="n">LangChain</span> <span class="n">integrations</span> <span class="k">with</span> <span class="n">NLP</span> <span class="n">frameworks</span> <span class="o">*</span><span class="n">NLTK</span><span class="o">*</span> <span class="ow">and</span> <span class="o">*</span><span class="n">SpaCy</span><span class="o">*</span>
+<span class="n">who</span> <span class="n">have</span> <span class="n">powerful</span> <span class="n">sentence</span> <span class="n">segmentation</span> <span class="n">features</span><span class="p">.</span>
+
+<span class="sb">``</span><span class="err">`</span><span class="n">python</span>
+<span class="kn">from</span> <span class="nn">langchain.text_splitter</span> <span class="kn">import</span> <span class="n">NLTKTextSplitter</span><span class="p">,</span> <span class="n">SpacyTextSplitter</span>
+
+<span class="c1">#nltk 
+</span><span class="n">splitter</span> <span class="o">=</span> <span class="n">NLTKTextSplitter</span><span class="p">()</span>
+<span class="n">chunks</span> <span class="o">=</span> <span class="n">splitter</span><span class="p">.</span><span class="n">split_text</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+
+<span class="c1">#SpaCy
+</span><span class="n">splitter</span> <span class="o">=</span> <span class="n">SpaCyTextSplitter</span><span class="p">()</span>
+<span class="n">chunks</span> <span class="o">=</span> <span class="n">splitter</span><span class="p">.</span><span class="n">split_text</span><span class="p">(</span><span class="n">text</span><span class="p">)</span><span class="sb">``</span><span class="err">`</span>
+<span class="c1">### Recursive Character Text Splitter
+</span><span class="n">A</span> <span class="n">langchain</span> <span class="n">method</span> <span class="n">that</span> <span class="n">allows</span> <span class="n">you</span> <span class="n">to</span> <span class="n">define</span> <span class="n">chunk</span> <span class="n">size</span> <span class="ow">and</span> <span class="n">overlap</span><span class="p">,</span> <span class="n">but</span> <span class="n">it</span> <span class="n">addition</span><span class="p">,</span> <span class="n">it</span> <span class="n">will</span> <span class="n">recursively</span> <span class="n">split</span> <span class="n">text</span> <span class="n">according</span> <span class="n">to</span> <span class="n">text</span> <span class="nb">type</span> <span class="n">using</span> <span class="n">user</span><span class="o">-</span><span class="n">defined</span> <span class="n">text</span> <span class="n">splitters</span><span class="p">.</span> <span class="n">In</span> <span class="n">other</span> <span class="n">words</span><span class="p">,</span> <span class="n">it</span> <span class="n">involves</span> <span class="n">document</span> <span class="n">structure</span> <span class="n">into</span> <span class="n">how</span> <span class="n">the</span> <span class="n">splitting</span> <span class="ow">is</span> <span class="n">done</span><span class="p">.</span> <span class="n">It</span> <span class="n">seeks</span> <span class="n">to</span> <span class="n">chunk</span> <span class="n">it</span> <span class="n">recursive</span> <span class="n">fashion</span> <span class="n">by</span> <span class="n">breaking</span> <span class="n">down</span> <span class="n">text</span> <span class="n">according</span> <span class="n">to</span> <span class="n">the</span> <span class="n">larger</span> <span class="n">separator</span> <span class="p">(</span><span class="n">eg</span><span class="p">.</span> <span class="n">double</span> <span class="n">new</span> <span class="n">line</span><span class="p">),</span> <span class="n">to</span> <span class="n">the</span> <span class="n">smaller</span> <span class="p">(</span><span class="n">ex</span><span class="p">.</span> <span class="n">characters</span><span class="p">.)</span>
+
+<span class="n">For</span> <span class="n">example</span><span class="p">,</span> <span class="k">if</span> <span class="n">our</span> <span class="n">chunk_size</span> <span class="ow">is</span> <span class="mi">500</span> <span class="n">but</span> <span class="n">we</span> <span class="n">have</span> <span class="n">a</span> <span class="n">continuous</span> <span class="n">paragraph</span> <span class="n">of</span> <span class="mi">600</span><span class="p">,</span> <span class="n">the</span> <span class="n">recursive</span> <span class="n">splitter</span> <span class="n">will</span> <span class="n">split</span> <span class="n">the</span> <span class="mi">600</span> <span class="n">character</span> <span class="n">paragraph</span> <span class="n">into</span> <span class="n">smaller</span> <span class="n">units</span> <span class="o">-&gt;</span> <span class="n">paragraph</span> <span class="o">-&gt;</span> <span class="n">sentence</span> <span class="o">-&gt;</span> <span class="n">word</span> <span class="o">-&gt;</span> <span class="n">character</span> <span class="n">to</span> <span class="n">maximize</span> <span class="n">the</span> <span class="n">amount</span> <span class="n">it</span> <span class="n">could</span> <span class="n">fit</span> <span class="n">into</span> <span class="n">the</span> <span class="n">allotment</span> <span class="n">of</span> <span class="mf">500.</span> <span class="n">On</span> <span class="n">the</span> <span class="n">other</span> <span class="n">hand</span><span class="p">,</span> <span class="k">if</span> <span class="n">we</span> <span class="n">had</span> <span class="n">a</span> <span class="n">paragraph</span> <span class="k">with</span> <span class="n">only</span> <span class="mi">400</span> <span class="n">characters</span><span class="p">,</span> <span class="n">the</span> <span class="n">splitter</span> <span class="n">would</span> <span class="n">cut</span> <span class="n">the</span> <span class="n">chunk</span> <span class="n">at</span> <span class="mi">400</span> <span class="n">to</span> <span class="n">maintain</span> <span class="n">congruity</span> <span class="n">rather</span> <span class="n">than</span> <span class="n">adding</span> <span class="n">an</span> <span class="n">additional</span> <span class="mi">100</span> <span class="n">characters</span> <span class="k">from</span> <span class="n">the</span> <span class="nb">next</span> <span class="n">paragraph</span> <span class="n">to</span> <span class="n">reach</span> <span class="n">the</span> <span class="mi">500</span> <span class="n">character</span> <span class="n">limit</span><span class="p">.</span> 
+
+<span class="sb">``</span><span class="err">`</span><span class="n">python</span>
+<span class="n">text_splitter</span> <span class="o">=</span> <span class="n">RecursiveCharacterTextSplitter</span><span class="p">(</span><span class="n">chunk_size</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">chunk_overlap</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+<span class="n">pages</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span><span class="p">.</span><span class="n">page_content</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">text_splitter</span><span class="p">.</span><span class="n">split_documents</span><span class="p">(</span><span class="n">doc</span><span class="p">)]</span>
+</code></pre></div></div>
+
+<p>To demonstrate the usefulness of recursive chunking, lets use the amazing tool at [chunkviz.com] to show how increasing chunk size leads to clean separation of paragraphs. We set the splitter to the recursive splitter, and start with a chunk size of 100. 
+![[chunkviz_1.png]]</p>
+
+<p>This does not lead to a great semantic split. However, when we increase chunk size to 500, we get a different effect:
+![[chunkviz_2.png]]
+Now we are getting clear semantic chunking of paragraphs, which will lead to more unique and uniform context vectors for our LLM at retrieval and inference.</p>
+<h3 id="structural-chunking">
+<a class="anchor" href="#structural-chunking" aria-hidden="true"><span class="octicon octicon-link"></span></a>Structural Chunking</h3>
+<p>Structure chunking can be used in tandem with previously mentioned chunking methods to split HTML or markdown documents based on headers and underlying subsections.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
+		   <span class="p">(</span><span class="s">"h1"</span><span class="p">:</span> <span class="s">"Header 1"</span><span class="p">),</span>
+		   <span class="p">(</span><span class="s">"h2"</span><span class="p">:</span> <span class="s">"Header 2"</span><span class="p">),</span>
+		   <span class="p">(</span><span class="s">"h3"</span><span class="p">:</span> <span class="s">"Header 3"</span><span class="p">),</span>
+		   <span class="p">(</span><span class="s">"h4"</span><span class="p">:</span> <span class="s">"Header 4"</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="n">html_splitter</span> <span class="o">=</span> <span class="n">HTMLHeaderTextSplitter</span><span class="p">(</span><span class="n">headers_to_split_on</span><span class="o">=</span><span class="n">headers</span><span class="p">)</span>
+<span class="n">header_splits</span> <span class="o">=</span> <span class="n">html_splitter</span><span class="p">.</span><span class="n">split_text_from_url</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+
+<span class="n">splitter</span> <span class="o">=</span> <span class="n">RecursiveCharacterTextSplitter</span><span class="p">(</span>
+										  <span class="n">chunk_size</span><span class="o">=</span><span class="mi">800</span><span class="p">,</span>
+										  <span class="n">overlap</span><span class="o">=</span><span class="mi">40</span>
+<span class="p">)</span>
+<span class="n">chuchunks</span> <span class="o">=</span> <span class="n">splitter</span><span class="p">.</span><span class="n">split_documents</span><span class="p">(</span><span class="n">header_splits</span><span class="p">)</span>
+</code></pre></div></div>
+
+<h3 id="semantic-chunking">
+<a class="anchor" href="#semantic-chunking" aria-hidden="true"><span class="octicon octicon-link"></span></a>Semantic Chunking</h3>
+<p>Usually, we try and chunk entire paragraphs and summarize or embed them because we assume it will contain uniform information. But what if this is more than one semantic meaning or message in a paragraph. Shouldn’t we take into account the actual content? This is where semantic chunking comes in. This method is more intensive.</p>
+
+<blockquote>
+  <p>Its like the difference between arranging books on a shelf by size (our previous chunking methods), verses arraigning them by content (where you have to actually read the contents and understand them).</p>
+</blockquote>
+
+<p>For implementation, Llamindex has <a href="https://docs.llamaindex.ai/en/stable/examples/node_parsers/semantic_chunking.html">SemanticSplitterNodeParse class</a> that allows to split the document into chunks using contextual relationship between chunks. This adaptively picks the breakpoint in-between sentences using embedding similarity.</p>
+
+<h3 id="ner-chunking">
+<a class="anchor" href="#ner-chunking" aria-hidden="true"><span class="octicon octicon-link"></span></a>NER Chunking</h3>
+<h3 id="agent-based-chunking">
+<a class="anchor" href="#agent-based-chunking" aria-hidden="true"><span class="octicon octicon-link"></span></a>Agent-based Chunking</h3>
+
+<h2 id="summarization">
+<a class="anchor" href="#summarization" aria-hidden="true"><span class="octicon octicon-link"></span></a>Summarization</h2>
+<p>This is good for large documents that cannot fit in an LLM’s context window, for example articles or book chapters. Langchain has something called summarization chains which allow for summarization documents via an LLM, prior to later feeding that summary to another LLM at inference. It does so by building a running summary of a document by summarizing sequential chunks and iteratively building a summary of the entire document by combining the summary of all the chunks.</p>
+
+<p>```python
+from langchain.chains.summarize import load_summarize_chain
+from langchain.chat_models import ChatOpenAI
+from langchain.text_splitter import CharacterTextSplitter</p>
+
+<p>llm = ChatOpenAI(temperature=0, model_name=”gtp-3.5-turbo-16k”)
+splitter = CharacterTextSplitter(
+								 separator=”\n”,
+								 chunk_size=800,
+								 overlap=80
+)
+#chunk up large document
+chunks = splitter.create_documents(docs)
+chain = load_summarize_chain(llm, chain_type=’refine’)
+summary = chain.run(chunks)```</p>
+<h3 id="chunk-decoupling">
+<a class="anchor" href="#chunk-decoupling" aria-hidden="true"><span class="octicon octicon-link"></span></a>Chunk Decoupling</h3>
+<p>This is a way to provide a lot of context to an LLM, like in the form of an entire document, while minimizing storage for a vector DB as well as lookup latency.</p>
+
+<blockquote>
+  <p>In short, this means smaller texts for retrieval, and larger texts for generation.</p>
+</blockquote>
+
+<p>The steps involve:</p>
+<ol>
+  <li>summarize and embed documents</li>
+  <li>link summaries to raw document</li>
+  <li>retrieve relevant summaries from vector DB using the user’s query</li>
+  <li>Pass the linked document of the summary with the highest similarity to the LLM instead of just the corresponding summary.</li>
+</ol>
+
+<p>A similar method called <em>sentence text windows</em> can also be applied. Here, a document is chunked and embedded at a sentence level. When a relevant sentence is retrieved from the vector DB, it is passed to the LLM within a larger window surrounding that sentence to provide additional context to the LLM.</p>
+
+<hr>
+<p>See this jupyter notebook on my github for a look at semantic chunking:</p>
+<div class="footnotes" role="doc-endnotes">
+  <ol>
+    <li id="fn:2" role="doc-endnote">
+      <p>Tokenization is the process of splitting the input and output texts into smaller units that can be processed by the LLM AI models. Tokens can be words, characters, subwords, or symbols, depending on the type and the size of the model. A token is typically <em>not a word</em>; it could be a smaller unit, like <em>a character</em> or a <em>part of a word</em>, or a larger one like a <em>whole phrase</em>. In the GPT architecture, a sequence of tokens serves as the input and/or output during both training and inference (the stage where the model generates text based on a given prompt). For example, in the sentence “Hello, world!”, the tokens might be “Hello”, “,”, “ world”, “!” depending on how the tokenization is performed. <a href="#fnref:2" class="reversefootnote" role="doc-backlink">↩</a></p>
+    </li>
+    <li id="fn:1" role="doc-endnote">
+      <p>Liu, N. F., Lin, K., Hewitt, J., Paranjape, A., Bevilacqua, M., Petroni, F., &amp; Liang, P. (2023). Lost in the Middle: How Language Models Use Long Contexts. https://arxiv.org/abs/2307.03172. <a href="#fnref:1" class="reversefootnote" role="doc-backlink">↩</a></p>
+    </li>
+  </ol>
+</div>
+
+  </div><a class="u-url" href="/My-DS-Blog/2023/08/25/RAG.html" hidden></a>
+</article>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/My-DS-Blog/"></data>
+
+  <div class="wrapper">
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col">
+        <p class="feed-subscribe">
+          <a href="https://jackhmiller.github.io/My-DS-Blog/feed.xml">
+            <svg class="svg-icon orange">
+              <use xlink:href="/My-DS-Blog/assets/minima-social-icons.svg#rss"></use>
+            </svg><span>Subscribe</span>
+          </a>
+        </p>
+      </div>
+      <div class="footer-col">
+        <p>050-709-2944 | Jack.harris.miller@gmail.com</p>
+      </div>
+    </div>
+
+    <div class="social-links"><ul class="social-media-list"><li>
+  <a rel="me" href="https://github.com/jackhmiller" target="_blank" title="github">
+    <svg class="svg-icon grey">
+      <use xlink:href="/My-DS-Blog/assets/minima-social-icons.svg#github"></use>
+    </svg>
+  </a>
+</li>
+</ul>
+</div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>

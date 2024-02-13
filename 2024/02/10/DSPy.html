@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="twitter:card" content="summary_large_image" /><!-- Begin Jekyll SEO tag v2.6.1 -->
+<title>Stanford’s DSPy LLM Framework | Concept Drift</title>
+<meta name="generator" content="Jekyll v4.1.1" />
+<meta property="og:title" content="Stanford’s DSPy LLM Framework" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="An introduction to DSPy, the PyTorch for LLM programs" />
+<meta property="og:description" content="An introduction to DSPy, the PyTorch for LLM programs" />
+<link rel="canonical" href="https://jackhmiller.github.io/My-DS-Blog/2024/02/10/DSPy.html" />
+<meta property="og:url" content="https://jackhmiller.github.io/My-DS-Blog/2024/02/10/DSPy.html" />
+<meta property="og:site_name" content="Concept Drift" />
+<meta property="og:image" content="https://jackhmiller.github.io/My-DS-Blog/images/dspy" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2024-02-10T00:00:00-06:00" />
+<script type="application/ld+json">
+{"url":"https://jackhmiller.github.io/My-DS-Blog/2024/02/10/DSPy.html","@type":"BlogPosting","headline":"Stanford’s DSPy LLM Framework","dateModified":"2024-02-10T00:00:00-06:00","datePublished":"2024-02-10T00:00:00-06:00","image":"https://jackhmiller.github.io/My-DS-Blog/images/dspy","mainEntityOfPage":{"@type":"WebPage","@id":"https://jackhmiller.github.io/My-DS-Blog/2024/02/10/DSPy.html"},"description":"An introduction to DSPy, the PyTorch for LLM programs","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/My-DS-Blog/assets/css/style.css"><link type="application/atom+xml" rel="alternate" href="https://jackhmiller.github.io/My-DS-Blog/feed.xml" title="Concept Drift" /><link rel="shortcut icon" type="image/x-icon" href="/My-DS-Blog/images/nn_JFc_icon.ico">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Primer/15.2.0/primer.css" integrity="sha512-xTz2ys4coGAOz8vuV1NcQBkgVmKhsSEtjbqyMJbBHRplFuvKIUo6xhLHpAyPt9mfR6twHJgn9OgVLuqOvjeBhg==" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.14.0/css/all.min.css" integrity="sha512-1PKOgIY59xJ8Co8+NE6FZ+LOAZKjy+KY8iq0G4B3CyeY6wYHN3yt9PW0XpSriVlkMXe40PTKnXrLnZ9+fkDaog==" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.12.0/katex.min.css" integrity="sha512-h7nl+xz8wgDlNM4NqKEM4F1NkIRS17M9+uJwIGwuo8vGqIl4BhuCKdxjWEINm+xyrUjNCnK5dCrhM0sj+wTIXw==" crossorigin="anonymous" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.12.0/katex.min.js" integrity="sha512-/CMIhXiDA3m2c9kzRyd97MTb3MC6OVnx4TElQ7fkkoRghwDf6gi41gaT1PwF270W6+J60uTmwgeRpNpJdRV6sg==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.12.0/contrib/auto-render.min.js" integrity="sha512-Do7uJAaHZm5OLrIv/yN4w0iG1dbu01kzdMNnFfu/mAqgUk6Nniv2JYHcwH+cNwjqgLcqcuBBk+JRvprLVI8azg==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha512-0doc9hKxR3PYwso42RD1p5ySZpzzuDiOwMrdCEh2WdJZCjcmFKc/wEnL+z8fBQrnHoiNWbo+3fiGkOYXBdQp4A==" crossorigin="anonymous"></script>
+    <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement( document.body, {
+        delimiters: [
+            {left: "$$", right: "$$", display: true},
+            {left: "[%", right: "%]", display: true},
+            {left: "$", right: "$", display: false}
+        ]}
+        );
+    });
+    </script>
+
+
+<script>
+function wrap_img(fn) {
+    if (document.attachEvent ? document.readyState === "complete" : document.readyState !== "loading") {
+        var elements = document.querySelectorAll(".post img");
+        Array.prototype.forEach.call(elements, function(el, i) {
+            if (el.getAttribute("title") && (el.className != "emoji")) {
+                const caption = document.createElement('figcaption');
+                var node = document.createTextNode(el.getAttribute("title"));
+                caption.appendChild(node);
+                const wrapper = document.createElement('figure');
+                wrapper.className = 'image';
+                el.parentNode.insertBefore(wrapper, el);
+                el.parentNode.removeChild(el);
+                wrapper.appendChild(el);
+                wrapper.appendChild(caption);
+            }
+        });
+    } else { document.addEventListener('DOMContentLoaded', fn); }
+}
+window.onload = wrap_img;
+</script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function(){
+    // add link icon to anchor tags
+    var elem = document.querySelectorAll(".anchor-link")
+    elem.forEach(e => (e.innerHTML = '<i class="fas fa-link fa-xs"></i>'));
+    });
+</script>
+</head>
+<body><header class="site-header">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/My-DS-Blog/">Concept Drift</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/My-DS-Blog/CV/">My CV</a><a class="page-link" href="/My-DS-Blog/about/">About Me</a><a class="page-link" href="/My-DS-Blog/search/">Search</a><a class="page-link" href="/My-DS-Blog/categories/">Tags</a></div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">Stanford&#39;s DSPy LLM Framework</h1><p class="page-description">An introduction to DSPy, the PyTorch for LLM programs</p><p class="post-meta post-meta-title"><time class="dt-published" datetime="2024-02-10T00:00:00-06:00" itemprop="datePublished">
+        Feb 10, 2024
+      </time>
+       • <span class="read-time" title="Estimated read time">
+    
+    
+      6 min read
+    
+</span></p>
+
+    
+
+    </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <ul class="section-nav">
+<li class="toc-entry toc-h2"><a href="#setting-up-the-foundational-model-landscape">Setting up the Foundational Model Landscape</a></li>
+<li class="toc-entry toc-h2"><a href="#dspy">DSPy</a>
+<ul>
+<li class="toc-entry toc-h3"><a href="#inspired-by-pytorch">Inspired by PyTorch</a></li>
+<li class="toc-entry toc-h3"><a href="#2-control">2. Control</a></li>
+</ul>
+</li>
+<li class="toc-entry toc-h2"><a href="#teleprompter">Teleprompter</a></li>
+</ul><h2 id="setting-up-the-foundational-model-landscape">
+<a class="anchor" href="#setting-up-the-foundational-model-landscape" aria-hidden="true"><span class="octicon octicon-link"></span></a>Setting up the Foundational Model Landscape</h2>
+<p>The current LLM/foundational model landscape can be defined by dedication to task-specific design, that prioritize flexibility for performance. These tasks include:</p>
+<ul>
+  <li>Adaptation
+    <ul>
+      <li>Prompting- zero-shot, few-shot, kNN</li>
+      <li>Finte-tuning- PEFT, LoRa</li>
+    </ul>
+  </li>
+  <li>Reasoning
+    <ul>
+      <li>Chain-of-thought</li>
+      <li>Agent loops</li>
+    </ul>
+  </li>
+  <li>Augmentation
+    <ul>
+      <li>Retrieval augmentation, multi-model augmentation</li>
+      <li>Calling external tools</li>
+    </ul>
+  </li>
+  <li>Retrieval modeling</li>
+</ul>
+
+<p>Currently, it is not clear to how to connect and optimize all the pieces of current LLM pipelines. This is because pipeline fintetunes can be very complicated, and prompts are extremely fragile and non-transferable. Just take a look at current research papers that utilize on prompt engineering, and you will find massive free-form researcher-written prompts that are not sustainable or applicable to industry practices.</p>
+
+<blockquote>
+  <p>Given these myriad of tasks and the rapid development of the industry and academia associated with language modeling, it should be of critical important to develop robust pipelines that can serve a variety of tasks rather than hyper-specialized systems for individual language modeling tasks.</p>
+</blockquote>
+
+<p><strong>This is where DSPy combines in: to program, not prompt LLMs.</strong></p>
+
+<h2 id="dspy">
+<a class="anchor" href="#dspy" aria-hidden="true"><span class="octicon octicon-link"></span></a>DSPy</h2>
+<p>DSPy was created by Stanford University researchers with the goal of providing improved abstractions for different language modeling tasks. DSPy is all about programming, not prompting; it has been designed and engineering to control how your LLM modules interact with each other programmatically.  As such, the goal of DSPy is to shift the LLM paradigm from hacking on prompts to making sound and reproducible architectural decisions. They do so through the introduction of three concepts:</p>
+
+<p>DSPy’s framework is enabled by its provision of composable and declarative modules, structured in a manner familiar to Python users. This advancement elevates “prompting techniques” such as chain-of-thought and self-reflection from manual string manipulation tactics to versatile modular procedures capable of adapting to diverse tasks.</p>
+
+<ol>
+  <li>
+<strong>Signatures</strong>- abstract prompts as input/output dimensions of a module
+    <ol>
+      <li><code class="language-plaintext highlighter-rouge">question -&gt; answer</code></li>
+      <li><code class="language-plaintext highlighter-rouge">long_document -&gt; summary</code></li>
+      <li><code class="language-plaintext highlighter-rouge">context, question -&gt; rational, response</code></li>
+      <li><code class="language-plaintext highlighter-rouge">passage -&gt; main_entities</code></li>
+    </ol>
+  </li>
+  <li>
+<strong>Modules</strong>- generalized prompting techniques (and compose multi-stage systems) as parameterized layers
+    <ol>
+      <li><code class="language-plaintext highlighter-rouge">dspy.ProgramofThought</code></li>
+      <li><code class="language-plaintext highlighter-rouge">dspy.ReAct</code></li>
+      <li><code class="language-plaintext highlighter-rouge">dspy.ChainOfThought</code></li>
+      <li><code class="language-plaintext highlighter-rouge">dspy.MultiChainComparison</code></li>
+    </ol>
+  </li>
+  <li>
+<strong>Teleprompters</strong>- optimize systems towards arbitrary metrics
+    <ol>
+      <li><code class="language-plaintext highlighter-rouge">BootstrapFewShot</code></li>
+      <li><code class="language-plaintext highlighter-rouge">BootstrapFinetune</code></li>
+      <li><code class="language-plaintext highlighter-rouge">BootstrapFewShotWithRandomSearch</code></li>
+    </ol>
+  </li>
+</ol>
+
+<h3 id="inspired-by-pytorch">
+<a class="anchor" href="#inspired-by-pytorch" aria-hidden="true"><span class="octicon octicon-link"></span></a>Inspired by PyTorch</h3>
+<p>A neural network is implemented in python by initializing the model components, and then utilizing those components in a function that executes a forward pass through the model:</p>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Net</span><span class="p">(</span><span class="n">nn</span><span class="p">.</span><span class="n">Module</span><span class="p">):</span>
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="nb">super</span><span class="p">().</span><span class="n">__init__</span><span class="p">()</span>
+		<span class="bp">self</span><span class="p">.</span><span class="n">conv1</span> <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+		<span class="bp">self</span><span class="p">.</span><span class="n">pool</span> <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="n">MaxPool2d</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+		<span class="bp">self</span><span class="p">.</span><span class="n">conv2</span> <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+		<span class="bp">self</span><span class="p">.</span><span class="n">fc1</span> <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">16</span> <span class="o">*</span> <span class="mi">5</span> <span class="o">*</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">120</span><span class="p">)</span>
+		<span class="bp">self</span><span class="p">.</span><span class="n">fc2</span> <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">120</span><span class="p">,</span> <span class="mi">84</span><span class="p">)</span>
+		<span class="bp">self</span><span class="p">.</span><span class="n">fc3</span> <span class="o">=</span> <span class="n">nn</span><span class="p">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">84</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+
+	<span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+		<span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">pool</span><span class="p">(</span><span class="n">F</span><span class="p">.</span><span class="n">relu</span><span class="p">(</span><span class="bp">self</span><span class="p">.</span><span class="n">conv1</span><span class="p">(</span><span class="n">x</span><span class="p">)))</span>
+		<span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">pool</span><span class="p">(</span><span class="n">F</span><span class="p">.</span><span class="n">relu</span><span class="p">(</span><span class="bp">self</span><span class="p">.</span><span class="n">conv2</span><span class="p">(</span><span class="n">x</span><span class="p">)))</span>
+		<span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="p">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+		<span class="n">x</span> <span class="o">=</span> <span class="n">F</span><span class="p">.</span><span class="n">relu</span><span class="p">(</span><span class="bp">self</span><span class="p">.</span><span class="n">fc1</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+		<span class="n">x</span> <span class="o">=</span> <span class="n">F</span><span class="p">.</span><span class="n">relu</span><span class="p">(</span><span class="bp">self</span><span class="p">.</span><span class="n">fc2</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+		<span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">fc3</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+		<span class="k">return</span> <span class="n">x</span>
+</code></pre></div></div>
+<p>In the CNN above, the convolutions have inductive bias due to the weight sharing kernels. Similarly in DSPy, the docstring that serves as the prompt implements a degree of inductive bias by giving the LLM our use-case.</p>
+
+<p>Current LLM frameworks typically assume labels only for the program’s final output, not the intermediate steps. As you can see below, like in the PyTorch model above, we can specify intermediate model steps and even add validation steps via DSPy’s Suggestion module.</p>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">RAG</span><span class="p">(</span><span class="n">dspy</span><span class="p">.</span><span class="n">Module</span><span class="p">):</span>
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_passages</span><span class="o">=</span><span class="mi">3</span><span class="p">):</span>
+		<span class="nb">super</span><span class="p">().</span><span class="n">__init__</span><span class="p">()</span>
+
+		<span class="bp">self</span><span class="p">.</span><span class="n">retrieve</span> <span class="o">=</span> <span class="n">dspy</span><span class="p">.</span><span class="n">Retrieve</span><span class="p">(</span><span class="n">k</span><span class="o">=</span><span class="n">num_passages</span><span class="p">)</span>
+		<span class="bp">self</span><span class="p">.</span><span class="n">generate_answer</span> <span class="o">=</span> <span class="n">dspy</span><span class="p">.</span><span class="n">ChainOfThought</span><span class="p">(</span><span class="s">"question, context -&gt; answer"</span><span class="p">)</span>
+
+	<span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">question</span><span class="p">):</span>
+		<span class="n">context</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">retrieve</span><span class="p">(</span><span class="n">question</span><span class="p">).</span><span class="n">passages</span>
+		<span class="n">prediction</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">generate_answer</span><span class="p">(</span><span class="n">context</span><span class="o">=</span><span class="n">context</span><span class="p">,</span> <span class="n">question</span><span class="o">=</span><span class="n">question</span><span class="p">)</span>
+		
+		<span class="k">return</span> <span class="n">dspy</span><span class="p">.</span><span class="n">Prediction</span><span class="p">(</span><span class="n">context</span><span class="o">=</span><span class="n">context</span><span class="p">,</span> <span class="n">answer</span><span class="o">=</span><span class="n">prediction</span><span class="p">.</span><span class="n">answer</span><span class="p">)</span>
+				<span class="sb">``</span><span class="err">`</span>
+<span class="n">In</span> <span class="n">the</span> <span class="n">above</span> <span class="n">RAG</span> <span class="n">system</span><span class="p">,</span> <span class="n">we</span> <span class="n">are</span> <span class="n">defining</span> <span class="ow">or</span> <span class="n">components</span> <span class="ow">in</span> <span class="n">the</span> <span class="k">class</span> <span class="nc">initialization</span><span class="p">,</span> <span class="ow">and</span> <span class="n">then</span> <span class="n">defining</span> <span class="n">how</span> <span class="n">they</span> <span class="n">interact</span> <span class="n">during</span> <span class="n">the</span> <span class="n">forward</span> <span class="n">function</span><span class="p">.</span> <span class="n">In</span> <span class="n">this</span> <span class="n">system</span><span class="p">,</span> <span class="n">we</span> <span class="n">plug</span> <span class="n">the</span> <span class="n">question</span> <span class="n">into</span> <span class="n">our</span> <span class="n">retriever</span><span class="p">,</span> <span class="n">get</span> <span class="n">our</span> <span class="n">context</span> <span class="n">passages</span><span class="p">,</span> <span class="ow">and</span> <span class="n">then</span> <span class="k">finally</span> <span class="k">pass</span> <span class="n">the</span> <span class="n">context</span> <span class="n">to</span> <span class="n">our</span> <span class="n">generator</span> <span class="n">to</span> <span class="n">get</span> <span class="n">the</span> <span class="n">answer</span><span class="p">.</span> 
+<span class="c1">## Why DSPy is superior to current LLM frameworks like Langchain?
+### 1. Clean up prompts and structured input/output
+</span><span class="n">Within</span> <span class="n">the</span> <span class="n">realm</span> <span class="n">of</span> <span class="n">DSPy</span><span class="p">,</span> <span class="n">when</span> <span class="n">tasks</span> <span class="n">are</span> <span class="n">allocated</span> <span class="n">to</span> <span class="n">LMs</span><span class="p">,</span> <span class="n">specificity</span> <span class="ow">in</span> <span class="n">behavior</span> <span class="ow">is</span> <span class="n">expressed</span> <span class="n">through</span> <span class="n">Signatures</span><span class="p">.</span> <span class="n">A</span> <span class="n">Signature</span> <span class="n">encapsulates</span> <span class="n">a</span> <span class="n">declarative</span> <span class="n">representation</span> <span class="n">of</span> <span class="n">an</span> <span class="nb">input</span><span class="o">/</span><span class="n">output</span> <span class="n">behavioral</span> <span class="n">pattern</span> <span class="n">associated</span> <span class="k">with</span> <span class="n">a</span> <span class="n">DSPy</span> <span class="n">module</span><span class="p">.</span>
+
+<span class="n">Unlike</span> <span class="n">expending</span> <span class="n">effort</span> <span class="n">on</span> <span class="n">guiding</span> <span class="n">an</span> <span class="n">LLM</span> <span class="n">through</span> <span class="n">sub</span><span class="o">-</span><span class="n">tasks</span><span class="p">,</span> <span class="n">Signatures</span> <span class="n">empower</span> <span class="n">DSPy</span> <span class="n">users</span> <span class="n">to</span> <span class="n">elucidate</span> <span class="n">the</span> <span class="n">nature</span> <span class="n">of</span> <span class="n">the</span> <span class="n">sub</span><span class="o">-</span><span class="n">task</span><span class="p">.</span> <span class="n">Subsequently</span><span class="p">,</span> <span class="n">the</span> <span class="n">DSPy</span> <span class="n">compiler</span> <span class="n">takes</span> <span class="n">on</span> <span class="n">the</span> <span class="n">responsibility</span> <span class="n">of</span> <span class="n">devising</span> <span class="n">intricate</span> <span class="n">prompts</span> <span class="n">tailored</span> <span class="k">for</span> <span class="n">a</span> <span class="n">large</span> <span class="n">LM</span> <span class="ow">or</span> <span class="n">fine</span><span class="o">-</span><span class="n">tuning</span> <span class="n">a</span> <span class="n">smaller</span> <span class="n">LLM</span><span class="p">,</span> <span class="nb">all</span> <span class="ow">in</span> <span class="n">line</span> <span class="k">with</span> <span class="n">the</span> <span class="n">specified</span> <span class="n">Signature</span><span class="p">,</span> <span class="n">the</span> <span class="n">provided</span> <span class="n">data</span><span class="p">,</span> <span class="ow">and</span> <span class="n">the</span> <span class="n">existing</span> <span class="n">pipeline</span><span class="p">.</span>
+
+<span class="sb">``</span><span class="err">`</span><span class="n">python</span>
+<span class="k">class</span> <span class="nc">GenerateAnswer</span><span class="p">(</span><span class="n">dspy</span><span class="p">.</span><span class="n">Signature</span><span class="p">):</span>
+<span class="s">""" Answer questions with short factoid answers."""</span>
+	<span class="n">context</span> <span class="o">=</span> <span class="n">dspy</span><span class="p">.</span><span class="n">InputField</span><span class="p">(</span><span class="n">desc</span><span class="o">=</span><span class="s">"may contain relevant facts."</span><span class="p">)</span>
+	<span class="n">question</span> <span class="o">=</span> <span class="n">dspy</span><span class="p">.</span><span class="n">InputField</span><span class="p">()</span>
+	<span class="n">answer</span> <span class="o">=</span> <span class="n">dspy</span><span class="p">.</span><span class="n">OutputField</span><span class="p">(</span><span class="n">desc</span><span class="o">=</span><span class="s">"often between 1 and 5 words"</span><span class="p">)</span>
+</code></pre></div></div>
+<p>The docstring gives the prompt of what the task is.</p>
+
+<h3 id="2-control">
+<a class="anchor" href="#2-control" aria-hidden="true"><span class="octicon octicon-link"></span></a>2. Control</h3>
+<p>DSPy offers assertions, a feature with the capability to declare computational constraints within DSPy programs. This allows programmers to specify natural-language rules for valid outputs, guiding the behavior of language model calls during both compiling and inference stages. The approach harnesses Pythonic style of assertions while meshing backtracking logic to ensure autonomous self-correction and refinement of language model calls. By accounting for past outputs and passing forward relevant feedback and guidelines for self-correction, this feature offers a significant leap in DSPy with enhanced control over program behavior.</p>
+
+<p>DSPy provides two key mechanisms for <strong>Assertions</strong>:</p>
+<ul>
+  <li>
+<strong><code class="language-plaintext highlighter-rouge">dspy.Assert</code></strong>: This mandates that the program must satisfy the given assertion, raising an Exception otherwise. This is important when enforcing non-negotiable constraints within the program.</li>
+  <li>
+<strong><code class="language-plaintext highlighter-rouge">dspy.Suggest</code></strong>: Unlike <code class="language-plaintext highlighter-rouge">Assert</code>, <code class="language-plaintext highlighter-rouge">Suggest</code> is more flexible. It encourages the program to meet the assertion but allows the program to continue even if the assertion is not satisfied. This is particularly useful for guiding the program towards desired outcomes without halting execution for non-critical issues.</li>
+</ul>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">MultiHopQA</span><span class="p">(</span><span class="n">dspy</span><span class="p">.</span><span class="n">module</span><span class="p">):</span>
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="bp">self</span><span class="p">.</span><span class="n">retrieve</span> <span class="o">=</span> <span class="n">dspy</span><span class="p">.</span><span class="n">Retrieve</span><span class="p">(</span><span class="n">k</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+		<span class="bp">self</span><span class="p">.</span><span class="n">gen_query</span> <span class="o">=</span> <span class="n">dspy</span><span class="p">.</span><span class="n">ChainOfThought</span><span class="p">(</span><span class="s">"context, question -&gt; query"</span><span class="p">)</span>
+		<span class="bp">self</span><span class="p">.</span><span class="n">gen_answer</span> <span class="o">=</span> <span class="n">dspy</span><span class="p">.</span><span class="n">ChainOfThought</span><span class="p">(</span><span class="s">"context, question -&gt; answer"</span><span class="p">)</span>
+
+	<span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">question</span><span class="p">):</span>
+		<span class="n">context</span><span class="p">,</span> <span class="n">queries</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[</span><span class="n">question</span><span class="p">]</span>
+		<span class="k">for</span> <span class="n">hop</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">):</span>
+			<span class="n">query</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">gen_query</span><span class="p">(</span><span class="n">context</span><span class="o">=</span><span class="n">context</span><span class="p">,</span> <span class="n">question</span><span class="o">=</span><span class="n">question</span><span class="p">)</span>
+
+			<span class="n">dspy</span><span class="p">.</span><span class="n">Suggest</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">query</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">100</span><span class="p">,</span> <span class="s">"Query should be less than 100 characters"</span><span class="p">)</span>
+			<span class="n">dspy</span><span class="p">.</span><span class="n">Suggest</span><span class="p">(</span><span class="n">is_query_distinct</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">queries</span><span class="p">),</span> <span class="s">f"Query should be distinct from </span><span class="si">{</span><span class="n">queries</span><span class="si">}</span><span class="s">"</span><span class="p">)</span>
+
+			<span class="n">context</span> <span class="o">+=</span> <span class="bp">self</span><span class="p">.</span><span class="n">retrieve</span><span class="p">(</span><span class="n">query</span><span class="p">).</span><span class="n">passages</span>
+			<span class="n">queries</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+
+		<span class="n">pred</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">gen_answer</span><span class="p">(</span><span class="n">context</span><span class="o">=</span><span class="n">context</span><span class="p">,</span> <span class="n">question</span><span class="o">=</span><span class="n">question</span><span class="p">)</span>
+
+		<span class="k">return</span> <span class="n">dspy</span><span class="p">.</span><span class="n">Prediction</span><span class="p">(</span><span class="n">context</span><span class="o">=</span><span class="n">context</span><span class="p">,</span> <span class="n">answer</span><span class="o">=</span><span class="n">pred</span><span class="p">.</span><span class="n">answer</span><span class="p">)</span>
+</code></pre></div></div>
+<h2 id="teleprompter">
+<a class="anchor" href="#teleprompter" aria-hidden="true"><span class="octicon octicon-link"></span></a>Teleprompter</h2>
+<p>Notably, DSPy introduces an automatic compiler that educates LLMs on executing declarative stages within a program. This compiler internally traces the program’s execution and subsequently devises high-quality prompts suitable for larger LMs, or even trains automatic finetuning for smaller LMs, imparting knowledge of the task’s intricacies.</p>
+
+<p>Compiling hinges on three pivotal factors: a potentially compact <a href="https://towardsai.net/p/machine-learning/best-datasets-for-machine-learning-and-data-science-d80e9f030279" title="datasets">training data</a>set, a validation metric, and the selection of a teleprompter from DSPy’s repertoire. These teleprompters, embedded within DSPy, are potent optimizers capable of mastering the art of formulating impactful prompts tailored to any program’s modules. (The “tele-” prefix in “teleprompter” implies “at a distance,” referencing the automatic nature of prompting.)2024-02-13</p>
+
+<p>Here’s a simple example:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">trainset</span> <span class="o">=</span> <span class="p">[</span><span class="n">dspy</span><span class="p">.</span><span class="n">Example</span><span class="p">(</span><span class="n">question</span><span class="o">=</span><span class="s">"Joseph and his friends watch two movies..."</span><span class="p">,</span> <span class="n">answer</span><span class="o">=</span><span class="s">"4"</span><span class="p">,</span> <span class="p">...)]</span>
+
+<span class="n">CoT</span> <span class="o">=</span> <span class="n">dspy</span><span class="p">.</span><span class="n">ChainofThought</span><span class="p">(</span><span class="s">"question -&gt; answer"</span><span class="p">)</span>
+<span class="n">teleprompter</span> <span class="o">=</span> <span class="n">dspy</span><span class="p">.</span><span class="n">BootstrapFewShotWithRandomSearch</span><span class="p">(</span><span class="n">metric</span><span class="o">=</span><span class="n">gsm8k_accuracy</span><span class="p">)</span>
+<span class="n">bootstrapped_program</span> <span class="o">=</span> <span class="n">teleprompter</span><span class="p">.</span><span class="nb">compile</span><span class="p">(</span><span class="n">CoT</span><span class="p">,</span> <span class="n">trainset</span><span class="o">=</span><span class="n">trainset</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>Overall, DSPy offers a very concrete way for collaborative, modular, open research to compete with and outperform “scale is all you need” LLMs. See more at the project github: https://github.com/stanfordnlp/dspy/tree/main.</p>
+
+  </div><a class="u-url" href="/My-DS-Blog/2024/02/10/DSPy.html" hidden></a>
+</article>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/My-DS-Blog/"></data>
+
+  <div class="wrapper">
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col">
+        <p class="feed-subscribe">
+          <a href="https://jackhmiller.github.io/My-DS-Blog/feed.xml">
+            <svg class="svg-icon orange">
+              <use xlink:href="/My-DS-Blog/assets/minima-social-icons.svg#rss"></use>
+            </svg><span>Subscribe</span>
+          </a>
+        </p>
+      </div>
+      <div class="footer-col">
+        <p>050-709-2944 | Jack.harris.miller@gmail.com</p>
+      </div>
+    </div>
+
+    <div class="social-links"><ul class="social-media-list"><li>
+  <a rel="me" href="https://github.com/jackhmiller" target="_blank" title="github">
+    <svg class="svg-icon grey">
+      <use xlink:href="/My-DS-Blog/assets/minima-social-icons.svg#github"></use>
+    </svg>
+  </a>
+</li>
+</ul>
+</div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>

@@ -111,6 +111,7 @@ window.onload = wrap_img;
 <li class="toc-entry toc-h2"><a href="#chunking-strategies">Chunking Strategies</a>
 <ul>
 <li class="toc-entry toc-h3"><a href="#naive-chunking">Naive Chunking</a></li>
+<li class="toc-entry toc-h3"><a href="#recursive-character-text-splitter">Recursive Character Text Splitter</a></li>
 <li class="toc-entry toc-h3"><a href="#structural-chunking">Structural Chunking</a></li>
 <li class="toc-entry toc-h3"><a href="#semantic-chunking">Semantic Chunking</a></li>
 <li class="toc-entry toc-h3"><a href="#ner-chunking">NER Chunking</a></li>
@@ -133,7 +134,7 @@ window.onload = wrap_img;
 <a class="anchor" href="#what-is-chunking" aria-hidden="true"><span class="octicon octicon-link"></span></a>What is chunking?</h2>
 <p>Chunking is how you break up your own data as part of a RAG pipeline so it can be 1) stored &amp; retrieved effectively and 2) provide accurate and prudent context to an LLM at inference. Unlike fine-tuning, RAG enables an LLM to work with your own data (data that is has not been trained on)</p>
 
-<p>![[rag.excalidraw]]</p>
+<p><img src="/My-DS-Blog/images/RAG.PNG" alt="" title="A typical RAG workflow"></p>
 
 <h2 id="why-chunk">
 <a class="anchor" href="#why-chunk" aria-hidden="true"><span class="octicon octicon-link"></span></a>Why Chunk?</h2>
@@ -192,24 +193,26 @@ window.onload = wrap_img;
 
 <span class="c1">#SpaCy
 </span><span class="n">splitter</span> <span class="o">=</span> <span class="n">SpaCyTextSplitter</span><span class="p">()</span>
-<span class="n">chunks</span> <span class="o">=</span> <span class="n">splitter</span><span class="p">.</span><span class="n">split_text</span><span class="p">(</span><span class="n">text</span><span class="p">)</span><span class="sb">``</span><span class="err">`</span>
-<span class="c1">### Recursive Character Text Splitter
-</span><span class="n">A</span> <span class="n">langchain</span> <span class="n">method</span> <span class="n">that</span> <span class="n">allows</span> <span class="n">you</span> <span class="n">to</span> <span class="n">define</span> <span class="n">chunk</span> <span class="n">size</span> <span class="ow">and</span> <span class="n">overlap</span><span class="p">,</span> <span class="n">but</span> <span class="n">it</span> <span class="n">addition</span><span class="p">,</span> <span class="n">it</span> <span class="n">will</span> <span class="n">recursively</span> <span class="n">split</span> <span class="n">text</span> <span class="n">according</span> <span class="n">to</span> <span class="n">text</span> <span class="nb">type</span> <span class="n">using</span> <span class="n">user</span><span class="o">-</span><span class="n">defined</span> <span class="n">text</span> <span class="n">splitters</span><span class="p">.</span> <span class="n">In</span> <span class="n">other</span> <span class="n">words</span><span class="p">,</span> <span class="n">it</span> <span class="n">involves</span> <span class="n">document</span> <span class="n">structure</span> <span class="n">into</span> <span class="n">how</span> <span class="n">the</span> <span class="n">splitting</span> <span class="ow">is</span> <span class="n">done</span><span class="p">.</span> <span class="n">It</span> <span class="n">seeks</span> <span class="n">to</span> <span class="n">chunk</span> <span class="n">it</span> <span class="n">recursive</span> <span class="n">fashion</span> <span class="n">by</span> <span class="n">breaking</span> <span class="n">down</span> <span class="n">text</span> <span class="n">according</span> <span class="n">to</span> <span class="n">the</span> <span class="n">larger</span> <span class="n">separator</span> <span class="p">(</span><span class="n">eg</span><span class="p">.</span> <span class="n">double</span> <span class="n">new</span> <span class="n">line</span><span class="p">),</span> <span class="n">to</span> <span class="n">the</span> <span class="n">smaller</span> <span class="p">(</span><span class="n">ex</span><span class="p">.</span> <span class="n">characters</span><span class="p">.)</span>
+<span class="n">chunks</span> <span class="o">=</span> <span class="n">splitter</span><span class="p">.</span><span class="n">split_text</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+</code></pre></div></div>
+<h3 id="recursive-character-text-splitter">
+<a class="anchor" href="#recursive-character-text-splitter" aria-hidden="true"><span class="octicon octicon-link"></span></a>Recursive Character Text Splitter</h3>
+<p>A langchain method that allows you to define chunk size and overlap, but it addition, it will recursively split text according to text type using user-defined text splitters. In other words, it involves document structure into how the splitting is done. It seeks to chunk it recursive fashion by breaking down text according to the larger separator (eg. double new line), to the smaller (ex. characters.)</p>
 
-<span class="n">For</span> <span class="n">example</span><span class="p">,</span> <span class="k">if</span> <span class="n">our</span> <span class="n">chunk_size</span> <span class="ow">is</span> <span class="mi">500</span> <span class="n">but</span> <span class="n">we</span> <span class="n">have</span> <span class="n">a</span> <span class="n">continuous</span> <span class="n">paragraph</span> <span class="n">of</span> <span class="mi">600</span><span class="p">,</span> <span class="n">the</span> <span class="n">recursive</span> <span class="n">splitter</span> <span class="n">will</span> <span class="n">split</span> <span class="n">the</span> <span class="mi">600</span> <span class="n">character</span> <span class="n">paragraph</span> <span class="n">into</span> <span class="n">smaller</span> <span class="n">units</span> <span class="o">-&gt;</span> <span class="n">paragraph</span> <span class="o">-&gt;</span> <span class="n">sentence</span> <span class="o">-&gt;</span> <span class="n">word</span> <span class="o">-&gt;</span> <span class="n">character</span> <span class="n">to</span> <span class="n">maximize</span> <span class="n">the</span> <span class="n">amount</span> <span class="n">it</span> <span class="n">could</span> <span class="n">fit</span> <span class="n">into</span> <span class="n">the</span> <span class="n">allotment</span> <span class="n">of</span> <span class="mf">500.</span> <span class="n">On</span> <span class="n">the</span> <span class="n">other</span> <span class="n">hand</span><span class="p">,</span> <span class="k">if</span> <span class="n">we</span> <span class="n">had</span> <span class="n">a</span> <span class="n">paragraph</span> <span class="k">with</span> <span class="n">only</span> <span class="mi">400</span> <span class="n">characters</span><span class="p">,</span> <span class="n">the</span> <span class="n">splitter</span> <span class="n">would</span> <span class="n">cut</span> <span class="n">the</span> <span class="n">chunk</span> <span class="n">at</span> <span class="mi">400</span> <span class="n">to</span> <span class="n">maintain</span> <span class="n">congruity</span> <span class="n">rather</span> <span class="n">than</span> <span class="n">adding</span> <span class="n">an</span> <span class="n">additional</span> <span class="mi">100</span> <span class="n">characters</span> <span class="k">from</span> <span class="n">the</span> <span class="nb">next</span> <span class="n">paragraph</span> <span class="n">to</span> <span class="n">reach</span> <span class="n">the</span> <span class="mi">500</span> <span class="n">character</span> <span class="n">limit</span><span class="p">.</span> 
+<p>For example, if our chunk_size is 500 but we have a continuous paragraph of 600, the recursive splitter will split the 600 character paragraph into smaller units -&gt; paragraph -&gt; sentence -&gt; word -&gt; character to maximize the amount it could fit into the allotment of 500. On the other hand, if we had a paragraph with only 400 characters, the splitter would cut the chunk at 400 to maintain congruity rather than adding an additional 100 characters from the next paragraph to reach the 500 character limit.</p>
 
-<span class="sb">``</span><span class="err">`</span><span class="n">python</span>
-<span class="n">text_splitter</span> <span class="o">=</span> <span class="n">RecursiveCharacterTextSplitter</span><span class="p">(</span><span class="n">chunk_size</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">chunk_overlap</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">text_splitter</span> <span class="o">=</span> <span class="n">RecursiveCharacterTextSplitter</span><span class="p">(</span><span class="n">chunk_size</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">chunk_overlap</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 
 <span class="n">pages</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span><span class="p">.</span><span class="n">page_content</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">text_splitter</span><span class="p">.</span><span class="n">split_documents</span><span class="p">(</span><span class="n">doc</span><span class="p">)]</span>
 </code></pre></div></div>
 
 <p>To demonstrate the usefulness of recursive chunking, lets use the amazing tool at [chunkviz.com] to show how increasing chunk size leads to clean separation of paragraphs. We set the splitter to the recursive splitter, and start with a chunk size of 100. 
-![[chunkviz_1.png]]</p>
+<img src="/My-DS-Blog/images/chunkviz_1.png" alt=""></p>
 
 <p>This does not lead to a great semantic split. However, when we increase chunk size to 500, we get a different effect:
-![[chunkviz_2.png]]
-Now we are getting clear semantic chunking of paragraphs, which will lead to more unique and uniform context vectors for our LLM at retrieval and inference.</p>
+<img src="/My-DS-Blog/images/chunkviz_2.png" alt=""></p>
+
+<p>Now we are getting clear semantic chunking of paragraphs, which will lead to more unique and uniform context vectors for our LLM at retrieval and inference.</p>
 <h3 id="structural-chunking">
 <a class="anchor" href="#structural-chunking" aria-hidden="true"><span class="octicon octicon-link"></span></a>Structural Chunking</h3>
 <p>Structure chunking can be used in tandem with previously mentioned chunking methods to split HTML or markdown documents based on headers and underlying subsections.</p>
@@ -250,21 +253,21 @@ Now we are getting clear semantic chunking of paragraphs, which will lead to mor
 <a class="anchor" href="#summarization" aria-hidden="true"><span class="octicon octicon-link"></span></a>Summarization</h2>
 <p>This is good for large documents that cannot fit in an LLM’s context window, for example articles or book chapters. Langchain has something called summarization chains which allow for summarization documents via an LLM, prior to later feeding that summary to another LLM at inference. It does so by building a running summary of a document by summarizing sequential chunks and iteratively building a summary of the entire document by combining the summary of all the chunks.</p>
 
-<p>```python
-from langchain.chains.summarize import load_summarize_chain
-from langchain.chat_models import ChatOpenAI
-from langchain.text_splitter import CharacterTextSplitter</p>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">langchain.chains.summarize</span> <span class="kn">import</span> <span class="n">load_summarize_chain</span>
+<span class="kn">from</span> <span class="nn">langchain.chat_models</span> <span class="kn">import</span> <span class="n">ChatOpenAI</span>
+<span class="kn">from</span> <span class="nn">langchain.text_splitter</span> <span class="kn">import</span> <span class="n">CharacterTextSplitter</span>
 
-<p>llm = ChatOpenAI(temperature=0, model_name=”gtp-3.5-turbo-16k”)
-splitter = CharacterTextSplitter(
-								 separator=”\n”,
-								 chunk_size=800,
-								 overlap=80
-)
-#chunk up large document
-chunks = splitter.create_documents(docs)
-chain = load_summarize_chain(llm, chain_type=’refine’)
-summary = chain.run(chunks)```</p>
+<span class="n">llm</span> <span class="o">=</span> <span class="n">ChatOpenAI</span><span class="p">(</span><span class="n">temperature</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">model_name</span><span class="o">=</span><span class="s">"gtp-3.5-turbo-16k"</span><span class="p">)</span>
+<span class="n">splitter</span> <span class="o">=</span> <span class="n">CharacterTextSplitter</span><span class="p">(</span>
+								 <span class="n">separator</span><span class="o">=</span><span class="s">"</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span>
+								 <span class="n">chunk_size</span><span class="o">=</span><span class="mi">800</span><span class="p">,</span>
+								 <span class="n">overlap</span><span class="o">=</span><span class="mi">80</span>
+<span class="p">)</span>
+<span class="c1">#chunk up large document
+</span><span class="n">chunks</span> <span class="o">=</span> <span class="n">splitter</span><span class="p">.</span><span class="n">create_documents</span><span class="p">(</span><span class="n">docs</span><span class="p">)</span>
+<span class="n">chain</span> <span class="o">=</span> <span class="n">load_summarize_chain</span><span class="p">(</span><span class="n">llm</span><span class="p">,</span> <span class="n">chain_type</span><span class="o">=</span><span class="s">'refine'</span><span class="p">)</span>
+<span class="n">summary</span> <span class="o">=</span> <span class="n">chain</span><span class="p">.</span><span class="n">run</span><span class="p">(</span><span class="n">chunks</span><span class="p">)</span>
+</code></pre></div></div>
 <h3 id="chunk-decoupling">
 <a class="anchor" href="#chunk-decoupling" aria-hidden="true"><span class="octicon octicon-link"></span></a>Chunk Decoupling</h3>
 <p>This is a way to provide a lot of context to an LLM, like in the form of an entire document, while minimizing storage for a vector DB as well as lookup latency.</p>
@@ -284,7 +287,7 @@ summary = chain.run(chunks)```</p>
 <p>A similar method called <em>sentence text windows</em> can also be applied. Here, a document is chunked and embedded at a sentence level. When a relevant sentence is retrieved from the vector DB, it is passed to the LLM within a larger window surrounding that sentence to provide additional context to the LLM.</p>
 
 <hr>
-<p>See this jupyter notebook on my github for a look at semantic chunking:</p>
+<p>See this jupyter notebook on my github for a look at semantic chunking: https://github.com/jackhmiller/LLMs/blob/main/Chunking_Text_Splitting/SemanticChunker.ipynb</p>
 <div class="footnotes" role="doc-endnotes">
   <ol>
     <li id="fn:2" role="doc-endnote">

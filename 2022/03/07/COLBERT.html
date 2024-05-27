@@ -139,8 +139,7 @@ window.onload = wrap_img;
 
 <p>Late interaction models like ColBERT optimize for efficiency and scalability by allowing for the pre-computation of document representations and employing a more lightweight interaction step at the end, which focuses on the already encoded representations. This design choice enables faster retrieval times and reduced computational demands, making it more suitable for processing large document collections. Specifically, a batch dot-product is computed between the query token embeddings and document token embeddings to generate term-wise similarity scores. Max-pooling is then applied across document terms to find the highest similarity for each query term, and these scores are summed across query terms to derive the total document score. This approach allows for the pre-computation of document representations, significantly speeding up query processing.</p>
 
-<p>![[colbert.png]]
-Schematic diagrams illustrating query–document matching paradigms in neural IR. Figures contrasts existing approaches with the proposed late interaction paradigm d.</p>
+<p><img src="/My-DS-Blog/images/colbert.png" alt="" title="Schematic diagrams illustrating query–document matching paradigms in neural IR. Figures contrasts existing approaches with the proposed late interaction paradigm d."></p>
 
 <h2 id="in-practice">
 <a class="anchor" href="#in-practice" aria-hidden="true"><span class="octicon octicon-link"></span></a>In Practice</h2>

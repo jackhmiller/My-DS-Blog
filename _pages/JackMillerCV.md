@@ -6,25 +6,23 @@ permalink: /CV/
 ## **Work Experience**
 ### Senior Data Scientist at **CB4, A Gap Company** 
 ###### Herzliya, October 2021 - Present
->- Research, design, and implementation in production of deep learning models for predicting inventory inefficiencies and lost sales opportunities across all Gap retail and online stores
->- Models include zero-inflated deep hurdle model for out-of-stock prediction, demand forecasting with the Temporal Fusion Transformer (PyTorch), data/concept drift model for monitoring
->- Image feature extraction and text embeddings for sales forecasting for new products
->- Built and deployed parallelized and containerized model deployment at scale in a Kafka event-driven microservice architecture in Kubernetes using Terraform-managed Google Big Query infrastructure
+>-Led design and development of semantic eCommerce search engine using vector DB backend, finetuned product embedding models, and second-stage retrieval reranking model eCommerce recommendation system utilizing customer embeddings, enriched with product review aspect-based sentiment analysis and NER models
+>- Built internal data enrichment pipeline for LLM-based generation of product descriptions from images
+>- Led development of customer chat agent for eCommerce site using knowledge graph embeddings and RAG-based LLM text generation
+>- Model pipelines built and deployed at scale in a Kafka event-driven microservice architecture running on K8s and Terraform-managed infrastructure, and asynchronous FastAPI gateway   
 
 ### Data Scientist at **Sparks AB** 
 ###### Hod Hasharon, October 2018 – October 2021
->- Built and deployed end-to-end ML pipelines for financial instrument trading and forecasting
->- Research and implementation of different trading strategies and data preprocessing techniques such as the application of computer vision and wavelet transformations to signals
->- Oversaw data orchestration, model training/optimization, and deployment architecture
->- Development and deployment forecasting models that include temporal CNNs, LSTMs, deep autoregressive models (GluonTS DeepAR), and seasonal hybrid anomaly detection models
+>- Built and deployed a Hamilton (Markovian) regime-switching model as a market sentiment index, based on NLP features from sentiment analysis and text classification of unstructured financial data
+>- Built and deployed financial forecasting models using temporal CNNs and LSTMs that leveraged GloVe embeddings for features
+>- Implemented a macroeconomic event extraction service using transformer-based topic modeling 
 >- ML Ops using AWS S3/Lambda/SageMaker, Jenkins, custom API to automate training and deployment
 
 ### Junior Data Scientist at **EY (Ernst & Young)**
 ###### Tel Aviv, November 2016 – December 2018
->- Digital innovation team designed develop and deploy machine learning-based products both internally and to clients to increase efficiency of tax & audit processes
->- Image segmentation and recognition for automatic form competition
->- Classification model for tax-sensitive transactions including anomaly/fraud detection
->- Autoregressive forecasting model for regulatory penalty scheduling
+>- Part of the digital innovation team developing machine learning products internally to automate tax & audit processes
+>- Supervised classification model for detecting fraud/irregularity in transnational regularity filings 
+>- Autoregressive forecasting model for regulatory penalty scheduling 
 
 ### Quantitative Analyst at **McKinsey & Co.**
 ###### Washington D.C., January 2013-October 2015
